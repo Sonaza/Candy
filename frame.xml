@@ -1,0 +1,61 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	
+	<Font name="CandyFont" font="Interface/AddOns/Candy/Media/DORISPP.TTF" virtual="true">
+		<Shadow>
+			<Offset>
+				<AbsDimension x="0" y="-1"/>
+			</Offset>
+			<Color r="0" g="0" b="0" a="0.9"/>
+		</Shadow>
+		<FontHeight>
+			<AbsValue val="10"/>
+		</FontHeight>
+	</Font>
+	
+	<Button name="CandyBarFrameTemplate" parent="UIParent" movable="true" virtual="true" motionScriptsWhileDisabled="true" frameStrata="HIGH">
+		<Size x="100" y="16"/>
+		<Animations>
+			<AnimationGroup parentKey="fadein" setToFinalAlpha="true">
+				<Alpha fromAlpha="0.0" toAlpha="1.0" duration="0.1" order="1" smoothing="IN_OUT"/>
+				<Scripts>
+					<OnPlay function="CandyFrame_OnFadeIn"/>
+				</Scripts>
+			</AnimationGroup>
+			<AnimationGroup parentKey="fadeout" setToFinalAlpha="true">
+				<Alpha fromAlpha="1.0" toAlpha="0.0" duration="0.2" order="1" smoothing="IN_OUT"/>
+				<Scripts>
+					<OnFinished function="CandyFrame_OnFadeOut"/>
+				</Scripts>
+			</AnimationGroup>
+		</Animations>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture name="$parentBackground" parentKey="background" setAllPoints="true">
+					<Color r="1" g="1" b="1" a="1"/>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString name="$parentText" parentKey="text" inherits="CandyFont" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT" x="3" y="-3"/>
+						<Anchor point="BOTTOMRIGHT" relativeTo="$parent" relativePoint="BOTTOMRIGHT" x="-3" y="3"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad function="CandyBarFrame_OnLoad"/>
+			<OnClick function="CandyBarFrame_OnClick"/>
+			<OnEnter function="CandyBarFrame_OnEnter"/>
+			<OnLeave function="CandyBarFrame_OnLeave"/>
+			<OnMouseDown function="CandyBarFrame_OnMouseDown"/>
+			<OnMouseUp function="CandyBarFrame_OnMouseUp"/>
+		</Scripts>
+	</Button>
+	
+	<Frame name="CandyLuaCallbackEditFrame" parent="UIParent" frameStrata="DIALOG">
+		<!-- <Size x="250" y="180"/> -->
+	</Frame>
+	
+</Ui>
