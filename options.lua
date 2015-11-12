@@ -172,7 +172,7 @@ local options = {
 					type = "select",
 					order = 10,
 					name = "Create a New Candy Bar",
-					desc = "Select a Broker module to be added",
+					desc = "Select a Broker module to be added.",
 					style = "dropdown",
 					values = function() return A:GetAddableBrokers(); end,
 					set = function(self, value)
@@ -184,7 +184,7 @@ local options = {
 					type = "execute",
 					order = 30,
 					name = "Create",
-					desc = "Creates a Candy bar for the selected DataBroker module",
+					desc = "Creates a Candy bar for the selected DataBroker module.",
 					width = "half",
 					func = function()
 						if(selectedBroker) then
@@ -205,7 +205,7 @@ local options = {
 			args = {
 				font_face = {
 	                name = "Set Font Face",
-	                desc = "Set the text font face for all Candy bars",
+	                desc = "Set the text font face for all Candy bars.",
 	                type = "select",
 					dialogControl = 'LSM30_Font',
 					values = AceGUIWidgetLSMlists.font,
@@ -222,7 +222,7 @@ local options = {
 					type = "select",
 					order = 20,
 					name = "Change Font Size",
-					desc = "Set the font size of all Candy bars",
+					desc = "Globally set the font size of all current and future Candy bars.|n|nNote: This will override any bar-specific changes you have made!",
 					style = "dropdown",
 					values = function()
 						local fsize = {};
@@ -232,13 +232,13 @@ local options = {
 					set = function(self, value)
 						A:SetGlobalFontSize(value);
 					end,
-					get = function(self) return 0 end,
+					get = function(self) return A.db.global.fontSize end,
 				},
 				font_outline = {
 					type = "select",
 					order = 30,
 					name = "Change Font Outline",
-					desc = "Set the font outline of all Candy bars",
+					desc = "Globally sets the font outline of all current and future Candy bars.|n|nNote: This will override any bar-specific changes you have made!",
 					style = "dropdown",
 					values = function()
 						return {
@@ -250,7 +250,9 @@ local options = {
 					set = function(self, value)
 						A:SetGlobalFontOutline(value);
 					end,
-					get = function(self) return 0 end,
+					get = function(self)
+						return A.db.global.fontOutline or "";
+					end,
 				},
 			},
 		},
@@ -266,19 +268,25 @@ local options = {
 					type = "select",
 					order = 10,
 					name = "Set Frame Strata",
-					desc = "Set frame strata of all Candy bars",
+					desc = "Globally set frame strata of all current and future Candy bars.|n|nNote: This will override any bar-specific changes you have made!",
 					style = "dropdown",
 					values = function() return A.frameStrata; end,
 					set = function(self, value)
 						A:SetGlobalFrameStrata(A.frameStrata[value]);
 					end,
-					get = function(self) return 0 end,
+					get = function(self)
+						for k, v in ipairs(A.frameStrata) do
+							if(A.db.global.frameStrata == v) then return k end;
+						end
+						
+						return 0;
+					end,
 				},
 				reset_anchors = {
 					type = "execute",
 					order = 30,
 					name = "Reset Anchors",
-					desc = "Reposition all Candy bars to the middle of screen",
+					desc = "Reposition all Candy bars to the middle of screen.",
 					func = function()
 						StaticPopup_Show("CANDY_RESET_ANCHORS");
 					end,
@@ -289,6 +297,7 @@ local options = {
 };
 
 AceConfig:RegisterOptionsTable("Candy", options);
+LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Candy", "Candy", nil);
 
 function A:GetAddableBrokers()
 	local brokers = {};
@@ -322,6 +331,8 @@ function A:SetGlobalFontSize(newSize)
 		candyBar.data.fontSize = newSize;
 		A:UpdateCandyText(broker);
 	end
+	
+	self.db.global.fontSize = newSize;
 end
 
 function A:SetGlobalFontOutline(newOutline)
@@ -329,6 +340,8 @@ function A:SetGlobalFontOutline(newOutline)
 		candyBar.data.fontOutline = newOutline;
 		A:UpdateCandyText(broker);
 	end
+	
+	self.db.global.fontOutline = newOutline;
 end
 
 function A:SetGlobalFrameStrata(newFrameStrata)
@@ -337,12 +350,16 @@ function A:SetGlobalFrameStrata(newFrameStrata)
 	end
 	
 	A:UpdateCandyBars();
+	
+	self.db.global.frameStrata = newFrameStrata;
 end
 
 function A:OpenCandyOptions(frame, broker)
 	if(not A.ContextMenu) then
 		A.ContextMenu = CreateFrame("Frame", "CandyMenuFrame", UIParent, "UIDropDownMenuTemplate");
 	end
+	
+	CloseMenus();
 	
 	local point, relative = A:GetAnchors(frame, false);
 	local candyBar, module = A:GetCandy(broker);
@@ -352,6 +369,7 @@ function A:OpenCandyOptions(frame, broker)
 			text = "Frame Strata", isTitle = true, notCheckable = true,
 		},
 	};
+	
 	for _, frameStrata in ipairs(A.frameStrata) do
 		tinsert(frameStrataMenu, {
 			text = frameStrata,
@@ -362,28 +380,28 @@ function A:OpenCandyOptions(frame, broker)
 	
 	local contextMenuData = {
 		{
-			text = "Candy Options", isTitle = true, notCheckable = true,
+			text = string.format("Candy Options: |cffffffff%s|r", broker), isTitle = true, notCheckable = true,
 		},
 		{
-			text = "Show Tooltip on Hover",
+			text = "Show tooltip on hover",
 			func = function() candyBar.data.showTooltip = not candyBar.data.showTooltip; end,
 			checked = function() return candyBar.data.showTooltip; end,
 			isNotRadio = true,
 		},
 		{
-			text = "Make Click-through",
+			text = "Make click-through",
 			func = function() candyBar.data.isClickthrough = not candyBar.data.isClickthrough; end,
 			checked = function() return candyBar.data.isClickthrough; end,
 			isNotRadio = true,
 		},
 		{
-			text = "Show Icon",
+			text = "Show icon",
 			func = function() candyBar.data.showIcon = not candyBar.data.showIcon; A:UpdateCandyText(candyBar.broker); end,
 			checked = function() return candyBar.data.showIcon; end,
 			isNotRadio = true,
 		},
 		{
-			text = "Force White Text Color",
+			text = "Force white text color",
 			func = function() candyBar.data.stripColor = not candyBar.data.stripColor; A:UpdateCandyText(candyBar.broker); end,
 			checked = function() return candyBar.data.stripColor; end,
 			isNotRadio = true,
@@ -392,7 +410,7 @@ function A:OpenCandyOptions(frame, broker)
 			text = " ", isTitle = true, notCheckable = true,
 		},
 		{
-			text = "Lua Text Filter",
+			text = "Lua text filter",
 			func = function()
 				StaticPopup_Show("CANDY_LUA_TEXT_EDIT", candyBar.broker, nil, {
 					broker = candyBar.broker,
@@ -414,17 +432,17 @@ function A:OpenCandyOptions(frame, broker)
 					text = "Combat Status", isTitle = true, notCheckable = true,
 				},
 				{
-					text = "Show in and out of Combat",
+					text = "Show in and out of combat",
 					func = function() candyBar.data.visibility.mode = E.VISIBILITY_ALWAYS; end,
 					checked = function() return candyBar.data.visibility.mode == E.VISIBILITY_ALWAYS; end,
 				},
 				{
-					text = "Show only in Combat",
+					text = "Show only in combat",
 					func = function() candyBar.data.visibility.mode = E.VISIBILITY_IN_COMBAT; end,
 					checked = function() return candyBar.data.visibility.mode == E.VISIBILITY_IN_COMBAT; end,
 				},
 				{
-					text = "Show only out of Combat",
+					text = "Show only out of combat",
 					func = function() candyBar.data.visibility.mode = E.VISIBILITY_OUT_OF_COMBAT; end,
 					checked = function() return candyBar.data.visibility.mode == E.VISIBILITY_OUT_OF_COMBAT; end,
 				},
@@ -435,17 +453,17 @@ function A:OpenCandyOptions(frame, broker)
 					text = "Instance Status", isTitle = true, notCheckable = true,
 				},
 				{
-					text = "Show Everywhere",
+					text = "Show everywhere",
 					func = function() candyBar.data.visibility.instanceMode = E.INSTANCEMODE_EVERYWHERE; end,
 					checked = function() return candyBar.data.visibility.instanceMode == E.INSTANCEMODE_EVERYWHERE; end,
 				},
 				{
-					text = "Show only while in Instances",
+					text = "Show only while in instances",
 					func = function() candyBar.data.visibility.instanceMode = E.INSTANCEMODE_INSIDE; end,
 					checked = function() return candyBar.data.visibility.instanceMode == E.INSTANCEMODE_INSIDE; end,
 				},
 				{
-					text = "Do not show while in Instances",
+					text = "Do not show while in instances",
 					func = function() candyBar.data.visibility.instanceMode = E.INSTANCEMODE_OUTSIDE; end,
 					checked = function() return candyBar.data.visibility.instanceMode == E.INSTANCEMODE_OUTSIDE; end,
 				},
@@ -456,17 +474,17 @@ function A:OpenCandyOptions(frame, broker)
 					text = "Group Status", isTitle = true, notCheckable = true,
 				},
 				{
-					text = "Show Always",
+					text = "Show always",
 					func = function() candyBar.data.visibility.groupMode = E.GROUPMODE_ALWAYS; end,
 					checked = function() return candyBar.data.visibility.groupMode == E.GROUPMODE_ALWAYS; end,
 				},
 				{
-					text = "Only When Solo",
+					text = "Only when solo",
 					func = function() candyBar.data.visibility.groupMode = E.GROUPMODE_SOLO; end,
 					checked = function() return candyBar.data.visibility.groupMode == E.GROUPMODE_SOLO; end,
 				},
 				{
-					text = "Only When in Party or Raid",
+					text = "Only when in party or raid",
 					func = function() candyBar.data.visibility.groupMode = E.GROUPMODE_INPARTY; end,
 					checked = function() return candyBar.data.visibility.groupMode == E.GROUPMODE_INPARTY; end,
 				},
@@ -474,7 +492,7 @@ function A:OpenCandyOptions(frame, broker)
 					text = " ", isTitle = true, notCheckable = true,
 				},
 				{
-					text = "Show when Holding all", isTitle = true, notCheckable = true,
+					text = "Show only when Holding", isTitle = true, notCheckable = true,
 				},
 				{
 					text = "CTRL",
@@ -501,13 +519,13 @@ function A:OpenCandyOptions(frame, broker)
 					text = "Miscellaneous", isTitle = true, notCheckable = true,
 				},
 				{
-					text = "Hide When Pet Battling",
+					text = "Hide when pet battling",
 					func = function() candyBar.data.visibility.hideInPetBattle = not candyBar.data.visibility.hideInPetBattle; end,
 					checked = function() return candyBar.data.visibility.hideInPetBattle; end,
 					isNotRadio = true,
 				},
 				{
-					text = "Custom Lua Condition",
+					text = "Custom Lua condition",
 					func = function()
 						StaticPopup_Show("CANDY_LUA_VISIBILITY_EDIT", candyBar.broker, nil, {
 							broker = candyBar.broker,

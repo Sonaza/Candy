@@ -2,7 +2,7 @@
 ## Title: Candy
 ## Notes: Candy sized DataBroker docks
 ## Author: Sonaza
-## Version: 0.9-rc
+## Version: 0.9.1-rc
 ## SavedVariables: CandyDB
 
 #@no-lib-strip@

@@ -54,8 +54,4 @@
 		</Scripts>
 	</Button>
 	
-	<Frame name="CandyLuaCallbackEditFrame" parent="UIParent" frameStrata="DIALOG">
-		<!-- <Size x="250" y="180"/> -->
-	</Frame>
-	
 </Ui>

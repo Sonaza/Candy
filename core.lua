@@ -74,6 +74,9 @@ function A:OnEnable()
 			locked = false,
 			
 			fontFace = CANDY_DEFAULT_FONT,
+			fontSize = 10,
+			fontOutline = nil,
+			frameStrata = "MEDIUM",
 			
 			bars = {
 				["*"] = {
@@ -86,7 +89,6 @@ function A:OnEnable()
 					
 					fontSize = 10,
 					fontOutline = nil,
-					
 					frameStrata = "MEDIUM",
 					
 					luaTextFilter = nil,
@@ -260,10 +262,8 @@ function A:UpdateVisibility(inCombat)
 		
 		if(shouldShow and not candyBar:IsVisible()) then
 			candyBar.fadein:Play();
-			-- candyBar:shouldShow();
 		elseif(not shouldShow and candyBar:IsVisible()) then
 			candyBar.fadeout:Play();
-			-- candyBar:Hide();
 		end
 	end
 end
@@ -281,11 +281,9 @@ function A:AddCandy(broker)
 	
 	A:UnlockBars();
 	
-	local candyBar = A:CreateCandyBar(broker);
+	local candyBar = A:CreateCandyBar(broker, true);
 	if(candyBar) then
-		self.db.global.bars[broker].enabled = true;
 		candyBar.data = self.db.global.bars[broker];
-		
 		A:UpdateCandyText(broker);
 	end
 end
@@ -305,7 +303,7 @@ function A:GetCandy(broker)
 	return A.ActiveBars[broker], ldb:GetDataObjectByName(broker);
 end
 
-function A:CreateCandyBar(broker)
+function A:CreateCandyBar(broker, isNew)
 	local module = ldb:GetDataObjectByName(broker);
 	if(not module) then return false end
 	
@@ -319,11 +317,19 @@ function A:CreateCandyBar(broker)
 		candyBar:Show();
 	end
 	
+	if(isNew) then
+		self.db.global.bars[broker].enabled = true;
+		
+		self.db.global.bars[broker].fontSize = self.db.global.fontSize;
+		self.db.global.bars[broker].fontOutline = self.db.global.fontOutline;
+		self.db.global.bars[broker].frameStrata = self.db.global.frameStrata;
+	end
+	
 	candyBar:ClearAllPoints();
 	candyBar:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
 	candyBar.text:SetText(broker);
 	
-	candyBar:SetFrameStrata("HIGH");
+	candyBar:SetFrameStrata(self.db.global.bars[broker].frameStrata);
 	
 	A.ActiveBars[broker] = candyBar;
 	
@@ -371,22 +377,29 @@ function A:RestoreBars()
 end
 
 function A:ChangeBackground(frame, hasParent)
+	if(not frame) then return end
+	
 	if(hasParent) then
-		-- print(frame:GetName(), hasParent, "Coloring black", frame.background:GetVertexColor());
 		frame.background:SetVertexColor(0.0, 0.0, 0.0, 0.4);
 	else
-		-- print(frame:GetName(), hasParent, "Coloring yellow", frame.background:GetVertexColor());
 		frame.background:SetVertexColor(1.0, 1.0, 0.0, 0.2);
 	end
-	
-	-- print(frame.background:GetVertexColor());
 end
 
 function A:ResetAnchors()
+	local numBrokers = 0;
+	for broker, candyBar in pairs(A.ActiveBars) do
+		numBrokers = numBrokers + 1;
+	end
+	
 	local index = 0;
 	for broker, candyBar in pairs(A.ActiveBars) do
+		local y = index * 20 - (numBrokers / 2 * 20);
+		
 		candyBar:ClearAllPoints();
-		candyBar:SetPoint("CENTER", UIParent, "CENTER", 0, index * 16);
+		candyBar:SetPoint("CENTER", UIParent, "CENTER", 0, y);
+		
+		A:ChangeBackground(candyBar, false);
 		
 		candyBar.data.anchors = {};
 		candyBar.data.anchors[1] = {
@@ -394,7 +407,7 @@ function A:ResetAnchors()
 			relativeTo = "UIParent",
 			relativePoint = "CENTER",
 			x = 0,
-			y = index * 16,
+			y = y,
 		};
 		
 		index = index + 1;
@@ -759,14 +772,15 @@ function CandyBarFrame_OnMouseUp(self, button)
 		self.isMoving = false;
 		
 		if(not IsAltKeyDown() and FlyPaper) then
-			-- local otherFrame = A:FindClosestFrame(self, 250);
-			-- FlyPaper.Stick(self, otherFrame, 22, 0, 0)
+			local offset = IsShiftKeyDown() and 5 or 0;
 			
 			local foundSnap = false;
 			for broker, candyBar in pairs(A.ActiveBars) do
 				if(self.broker ~= candyBar.broker) then
-					if(FlyPaper.Stick(self, candyBar, 12, 0, 0)) then
+					local stickyPoint = FlyPaper.Stick(self, candyBar, 12 + offset, offset, offset);
+					if(stickyPoint) then
 						foundSnap = true;
+						-- print(self.broker, "sticky on", candyBar.broker, stickyPoint);
 						break;
 					end
 				end
