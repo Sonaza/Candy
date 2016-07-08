@@ -360,9 +360,7 @@ function A:RestoreBars()
 				relativeFrame = _G[anchor.relativeTo];
 			end
 			
-			-- print(_, anchor.point, anchor.relativeTo, relativeFrame, anchor.relativePoint, anchor.x, anchor.y);
-			
-			candyBar:SetPoint(anchor.point, relativeFrame, anchor.relativePoint, anchor.x, anchor.y);
+			candyBar:SetPoint(anchor.point, relativeFrame or UIParent, anchor.relativePoint, anchor.x, anchor.y);
 			
 			local hasParent = (relativeFrame ~= nil);
 			A:ChangeBackground(candyBar, hasParent);
@@ -414,13 +412,19 @@ function A:ResetAnchors()
 	end
 end
 
+function A:GetModuleText(module)
+	if(module.text) then return module.text end
+	if(module.label) then return module.label end
+	return "";
+end
+
 function A:UpdateCandyText(broker)
 	local candyBar, module = A:GetCandy(broker);
 	if(not candyBar or not module) then return end
 	
 	candyBar.text:SetJustifyH(candyBar.data.justify);
 	
-	local text = module.text or "";
+	local text = A:GetModuleText(module);
 	
 	if(candyBar.data.stripColor) then
 		text = A:StripColor(text);
