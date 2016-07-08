@@ -304,7 +304,7 @@ function A:GetAddableBrokers()
 	
 	for broker, data in ldb:DataObjectIterator() do
 		if(not A.ActiveBars[broker]) then
-			brokers[broker] = string.format("%s%s", ICON_PATTERN:format(data.icon), broker);
+			brokers[broker] = string.format("%s%s", data.icon and ICON_PATTERN:format(data.icon) or "", broker);
 		end
 	end
 	
