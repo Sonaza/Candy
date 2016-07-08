@@ -18,19 +18,18 @@ Text callback function receives one parameter: text. It expects a new string as 
 
 Example:
 
-<code lua>
+```lua
 -- Returns reverse text  
 return string.reverse(text);
-</code>
+```
 
 Visibility callback function receives two parameters: text and icon. It expects a boolean as return (true is visible).
 
 Example:
-
-<code lua>
+```lua
 -- Toggles visibility based on durability number displayed  
 local durability = tonumber(strmatch(text, "(%d+)")) or 0; return durability <= 50;
-</code>
+```
 
 ## Usage
 
