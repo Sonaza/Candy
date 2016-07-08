@@ -114,6 +114,10 @@ function A:OnEnable()
 							relativePoint = "CENTER",
 							x = 0,
 							y = 0,
+							absolute = {
+								x = 0,
+								y = 0,
+							},
 						},
 						[1] = {
 							point = "CENTER",
@@ -121,6 +125,10 @@ function A:OnEnable()
 							relativePoint = "CENTER",
 							x = 0,
 							y = 0,
+							absolute = {
+								x = 0,
+								y = 0,
+							},
 						},
 					},
 					
@@ -317,17 +325,26 @@ function A:CreateCandyBar(broker, isNew)
 		candyBar:Show();
 	end
 	
+	local settings = self.db.global.bars[broker];
+	
 	if(isNew) then
-		self.db.global.bars[broker].enabled = true;
+		settings.enabled = true;
 		
-		self.db.global.bars[broker].fontSize = self.db.global.fontSize;
-		self.db.global.bars[broker].fontOutline = self.db.global.fontOutline;
-		self.db.global.bars[broker].frameStrata = self.db.global.frameStrata;
+		settings.fontSize = self.db.global.fontSize;
+		settings.fontOutline = self.db.global.fontOutline;
+		settings.frameStrata = self.db.global.frameStrata;
 	end
 	
 	candyBar:ClearAllPoints();
 	candyBar:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
 	candyBar.text:SetText(broker);
+	
+	if(isNew) then
+		settings.anchors[1].absolute = {
+			x = candyBar:GetLeft(),
+			y = candyBar:GetBottom(),
+		};
+	end
 	
 	candyBar:SetFrameStrata(self.db.global.bars[broker].frameStrata);
 	
@@ -354,17 +371,24 @@ function A:RestoreBars()
 	for broker, candyBar in pairs(A.ActiveBars) do
 		candyBar:ClearAllPoints();
 		
-		for _, anchor in ipairs(candyBar.data.anchors) do
-			local relativeFrame;
-			if(anchor.relativeTo) then
-				relativeFrame = _G[anchor.relativeTo];
-			end
-			
-			candyBar:SetPoint(anchor.point, relativeFrame or UIParent, anchor.relativePoint, anchor.x, anchor.y);
-			
-			local hasParent = (relativeFrame ~= nil);
-			A:ChangeBackground(candyBar, hasParent);
+		-- Actually there will never be more than 1 anchor per frame
+		local anchor = candyBar.data.anchors[1];
+		
+		local relativeFrame;
+		if(anchor.relativeTo) then
+			relativeFrame = _G[anchor.relativeTo];
 		end
+		
+		local useAbsoluteAnchor = anchor.relativeTo and not _G[anchor.relativeTo];
+		
+		if(not useAbsoluteAnchor) then
+			candyBar:SetPoint(anchor.point, relativeFrame or UIParent, anchor.relativePoint, anchor.x, anchor.y);
+		else
+			candyBar:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", anchor.absolute.x, anchor.absolute.y);
+		end
+		
+		local hasParent = (relativeFrame ~= nil);
+		A:ChangeBackground(candyBar, hasParent);
 	end
 	
 	if(self.db.global.locked) then
@@ -406,6 +430,10 @@ function A:ResetAnchors()
 			relativePoint = "CENTER",
 			x = 0,
 			y = y,
+			absolute = {
+				x = candyBar:GetLeft(),
+				y = candyBar:GetBottom(),
+			},
 		};
 		
 		index = index + 1;
@@ -480,6 +508,12 @@ function A:LockBars()
 		if(candyBar.data.isClickthrough) then
 			candyBar:EnableMouse(false);
 		end
+		
+		-- Update absolute coordinates just in case
+		candyBar.data.anchors[1].absolute = {
+			x = candyBar:GetLeft(),
+			y = candyBar:GetBottom(),
+		};
 	end
 	
 	A:UpdateVisibility();
@@ -815,6 +849,10 @@ function CandyBarFrame_OnMouseUp(self, button)
 				relativePoint = relativePoint,
 				x = x,
 				y = y,
+				absolute = {
+					x = self:GetLeft(),
+					y = self:GetBottom(),
+				},
 			});
 		end
 		
