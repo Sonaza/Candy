@@ -1,8 +1,8 @@
-## Interface: 60200
+## Interface: 70000
 ## Title: Candy
 ## Notes: Candybar sized DataBroker docks
 ## Author: Sonaza
-## Version: 1.0.3
+## Version: 2.0.0
 ## SavedVariables: CandyDB
 
 #@no-lib-strip@

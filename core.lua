@@ -494,8 +494,7 @@ function A:UpdateCandy()
 end
 
 function A:AttributeChanged(event, name, key, value)
-	-- print(event, name, key, value);
-	if(key == "text") then
+	if(key == "text" or key == "icon") then
 		A:UpdateCandyText(name);
 	end
 end
