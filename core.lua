@@ -467,7 +467,7 @@ function A:UpdateCandyText(broker)
 		end
 	end
 	
-	if(candyBar.data.showIcon) then
+	if(candyBar.data.showIcon and module.icon) then
 		text = string.format("%s%s", ICON_PATTERN:format(module.icon) or "", text)
 	end
 	

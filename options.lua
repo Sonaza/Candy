@@ -182,13 +182,39 @@ local options = {
 				},
 				add_selected = {
 					type = "execute",
-					order = 30,
+					order = 20,
 					name = "Create",
 					desc = "Creates a Candy bar for the selected DataBroker module.",
 					width = "half",
 					func = function()
 						if(selectedBroker) then
 							A:AddCandy(selectedBroker);
+							selectedBroker = nil;
+						end
+					end,
+				},
+				
+				remove_candy_select = {
+					type = "select",
+					order = 40,
+					name = "Remove a New Candy Bar",
+					desc = "Select a Broker module to be removed.",
+					style = "dropdown",
+					values = function() return A:GetActiveBrokers(); end,
+					set = function(self, value)
+						selectedBroker = value;
+					end,
+					get = function(self) return selectedBroker; end,
+				},
+				remove_selected = {
+					type = "execute",
+					order = 50,
+					name = "Remove",
+					desc = "Removes a Candy bar for the selected DataBroker module.",
+					width = "half",
+					func = function()
+						if(selectedBroker) then
+							A:RemoveCandy(selectedBroker);
 							selectedBroker = nil;
 						end
 					end,
@@ -306,6 +332,17 @@ function A:GetAddableBrokers()
 		if(not A.ActiveBars[broker]) then
 			brokers[broker] = string.format("%s%s", data.icon and ICON_PATTERN:format(data.icon) or "", broker);
 		end
+	end
+	
+	return brokers;
+end
+
+function A:GetActiveBrokers()
+	local brokers = {};
+	
+	for broker, candyBar in pairs(A.ActiveBars) do
+		local _, data = A:GetCandy(broker);
+		brokers[broker] = string.format("%s%s", data.icon and ICON_PATTERN:format(data.icon) or "", broker);
 	end
 	
 	return brokers;
