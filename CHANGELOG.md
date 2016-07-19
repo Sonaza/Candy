@@ -1,6 +1,7 @@
 ## 2.0.1
 * Added a way to remove active bars in options menu.
 * Fixed yet another module icon nil error.
+* Updated AceLibs.
 
 ## 2.0.0
 * Legion update (no major changes).
