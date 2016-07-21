@@ -266,22 +266,26 @@ function A:UpdateVisibility(inCombat)
 			end
 		end
 		
-		-- print(shouldShow, candyBar:IsVisible(), candyBar:IsShown());
-		
-		if(shouldShow and not candyBar:IsVisible()) then
+		if(shouldShow and not candyBar.isVisible) then
 			candyBar.fadein:Play();
-		elseif(not shouldShow and candyBar:IsVisible()) then
+		elseif(not shouldShow and candyBar.isVisible) then
 			candyBar.fadeout:Play();
 		end
 	end
 end
 
 function CandyFrame_OnFadeIn(self)
-	self:GetParent():Show();
+	if(InCombatLockdown()) then return end
+	if(not self:GetParent().data.isClickthrough) then
+		self:GetParent():EnableMouse(true);
+	end
+	self:GetParent().isVisible = true;
 end
 
 function CandyFrame_OnFadeOut(self)
-	self:GetParent():Hide();
+	if(InCombatLockdown()) then return end
+	self:GetParent():EnableMouse(false);
+	self:GetParent().isVisible = false;
 end
 
 function A:AddCandy(broker)
@@ -324,6 +328,8 @@ function A:CreateCandyBar(broker, isNew)
 	else
 		candyBar:Show();
 	end
+	
+	candyBar.isVisible = true;
 	
 	local settings = self.db.global.bars[broker];
 	
@@ -642,19 +648,9 @@ function CandyBarFrame_OnClick(self, ...)
 	end
 end
 
-function A:GetAnchors(frame, relative)
-	-- local relative = relative or true;
-	
+function A:GetAnchors(frame)
 	local B, T = "BOTTOM", "TOP";
 	local x, y = frame:GetCenter();
-	
-	-- if(relative and frame.data) then
-	-- 	if(frame.data.justify == "LEFT") then
-	-- 		B, T = "BOTTOMLEFT", "TOPLEFT";
-	-- 	elseif(frame.data.justify == "RIGHT") then
-	-- 		B, T = "BOTTOMRIGHT", "TOPRIGHT";
-	-- 	end
-	-- end
 	
 	if(y < _G.GetScreenHeight() / 2) then
 		return B, T;
