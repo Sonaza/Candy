@@ -25,7 +25,7 @@
 			<AnimationGroup parentKey="fadeout" setToFinalAlpha="true">
 				<Alpha fromAlpha="1.0" toAlpha="0.0" duration="0.2" order="1" smoothing="IN_OUT"/>
 				<Scripts>
-					<OnFinished function="CandyFrame_OnFadeOut"/>
+					<OnPlay function="CandyFrame_OnFadeOut"/>
 				</Scripts>
 			</AnimationGroup>
 		</Animations>

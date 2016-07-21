@@ -1,3 +1,6 @@
+## 2.0.2
+* Fixed error caused by hide on protected frames.
+
 ## 2.0.1
 * Added a way to remove active bars in options menu.
 * Fixed yet another module icon nil error.
