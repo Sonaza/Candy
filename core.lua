@@ -267,8 +267,10 @@ function A:UpdateVisibility(inCombat)
 		end
 		
 		if(shouldShow and not candyBar.isVisible) then
+			candyBar.fadeout:Stop();
 			candyBar.fadein:Play();
 		elseif(not shouldShow and candyBar.isVisible) then
+			candyBar.fadein:Stop();
 			candyBar.fadeout:Play();
 		end
 	end
@@ -280,12 +282,21 @@ function CandyFrame_OnFadeIn(self)
 		self:GetParent():EnableMouse(true);
 	end
 	self:GetParent().isVisible = true;
+	self:GetParent():Show();
+	A:UpdateCandyText(self:GetParent().broker);
 end
 
 function CandyFrame_OnFadeOut(self)
 	if(InCombatLockdown()) then return end
 	self:GetParent():EnableMouse(false);
 	self:GetParent().isVisible = false;
+end
+
+function CandyFrame_OnFadeOutFinish(self)
+	self:GetParent().text:SetText("");
+	if(not InCombatLockdown()) then
+		self:GetParent():Hide();
+	end
 end
 
 function A:AddCandy(broker)

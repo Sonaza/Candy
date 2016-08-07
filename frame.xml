@@ -26,6 +26,7 @@
 				<Alpha fromAlpha="1.0" toAlpha="0.0" duration="0.2" order="1" smoothing="IN_OUT"/>
 				<Scripts>
 					<OnPlay function="CandyFrame_OnFadeOut"/>
+					<OnFinished function="CandyFrame_OnFadeOutFinish"/>
 				</Scripts>
 			</AnimationGroup>
 		</Animations>
