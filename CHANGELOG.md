@@ -1,3 +1,7 @@
+## 2.0.3
+* Fixed error with fade in and out animations if visibility status changed while animation was still playing.
+* Tweaking frame hiding some more.
+
 ## 2.0.2
 * Fixed error caused by hide on protected frames.
 
