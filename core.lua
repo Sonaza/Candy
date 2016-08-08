@@ -261,7 +261,9 @@ function A:UpdateVisibility(inCombat)
 				
 				if(callbackFunction) then
 					local module = ldb:GetDataObjectByName(broker);
-					shouldShow = shouldShow and callbackFunction(A:StripColor(module.text), module.icon);
+					
+					local result = callbackFunction(A:StripColor(module.text), module.icon);
+					shouldShow = shouldShow and result;
 				end
 			end
 		end
@@ -458,8 +460,8 @@ function A:ResetAnchors()
 end
 
 function A:GetModuleText(module)
-	if(module.text) then return module.text end
-	if(module.label) then return module.label end
+	if(module.text) then return tostring(module.text) end
+	if(module.label) then return tostring(module.label) end
 	return "";
 end
 
@@ -480,7 +482,8 @@ function A:UpdateCandyText(broker)
 		local filterFunction, scriptError = loadstring(script, "Candy-TextFilter-" .. candyBar.broker);
 		
 		if(filterFunction) then
-			text = filterFunction(text or "") or text;
+			local result = filterFunction(text or "");
+			text = tostring(result) or text;
 		end
 	end
 	

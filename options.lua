@@ -17,22 +17,39 @@ function A:AddMessage(msg, ...)
 end
 
 local ValidateVisibilityCallback = function(script, broker)
-	local f, scriptError = loadstring(string.format('return (function(text, icon) %s end)(...)', script or "return true;"), "Candy-Visibility-" .. broker);
-	if(not f) then
+	local func, scriptError = loadstring(string.format('return (function(text, icon) %s end)(...)', script or "return true;"), "Candy-Visibility-" .. broker);
+	if(not func) then
 		A:AddMessage("Error: %s", scriptError);
 	else
 		A:AddMessage("No script errors. Yay!");
+		
+		local _, module = A:GetCandy(broker);
+		if(not module) then return end
+		
+		local text = A:GetModuleText(module);
+		
+		local result = func(text);
+		if(type(result) == "string") then
+			A:AddMessage("Visibility callback returns a string but it may not be intentional. Did you mean to set text filter instead?");
+		elseif(type(result) ~= "boolean" and type(result) ~= "nil") then
+			A:AddMessage("Visibility callback returns a %s but it may not be intentional. Please re-check the callback script.", type(result));
+		end
 	end
 end
 
 StaticPopupDialogs["CANDY_LUA_VISIBILITY_EDIT"] = {
-	text = "Edit Custom Lua Visibility Callback for \"%s\":\124n\124nFunction receives two parameters: text and icon. It must return a boolean.",
+	text = "Edit Custom Lua Visibility Callback for \"%s\":\124n\124nFunction receives two parameters: text and icon. It must return a boolean or nil.",
 	button1 = SAVE,
 	button2 = "Validate",
 	button3 = CANCEL,
 	OnAccept = function(self, data)
 		data.options.visibility.customLua = strtrim(self.editBox:GetText());
-		ValidateVisibilityCallback(data.options.visibility.customLua, data.broker);
+		if(data.options.visibility.customLua and data.options.visibility.customLua ~= "") then
+			ValidateVisibilityCallback(data.options.visibility.customLua, data.broker);
+		else
+			A:AddMessage("Cleared custom visibility condition.");
+			data.options.luaTextFilter = nil;
+		end
 		
 		self.editBox:SetText("");
 	end,
@@ -54,10 +71,6 @@ StaticPopupDialogs["CANDY_LUA_VISIBILITY_EDIT"] = {
 		self.editBox:SetText("");
 		self.defaultWidth = nil;
 	end,
-	OnAlt = function(self, data)
-		-- data.options.visibility.customLua = nil;
-		-- A:UpdateCandy();
-	end,
 	
 	hasEditBox = 1,
 	whileDead = 1,
@@ -65,22 +78,41 @@ StaticPopupDialogs["CANDY_LUA_VISIBILITY_EDIT"] = {
 };
 
 local ValidateTextFilter = function(script, broker)
-	local f, scriptError = loadstring(string.format('return (function(text) %s end)(...)', script or "return text;"), "Candy-TextFilter-" .. broker);
-	if(not f) then
+	local func, scriptError = loadstring(string.format('return (function(text) %s end)(...)', script or "return text;"), "Candy-TextFilter-" .. broker);
+	if(not func) then
 		A:AddMessage("Error: %s", scriptError);
 	else
 		A:AddMessage("No script errors. Yay!");
+		
+		local _, module = A:GetCandy(broker);
+		if(not module) then return end
+		
+		local text = A:GetModuleText(module);
+		
+		local result = func(text);
+		if(type(result) == "boolean") then
+			A:AddMessage("Text filter returns a boolean but it may not be intentional. Did you mean to set visibility condition instead?");
+		elseif(type(result) ~= "string" and type(result) ~= "number") then
+			A:AddMessage("Text filter returns a %s but it may not be intentional. Please re-check the callback script.", type(result));
+		end
+		
+		A:AddMessage("Resulting output: %s", tostring(result));
 	end
 end
 
 StaticPopupDialogs["CANDY_LUA_TEXT_EDIT"] = {
-	text = "Edit Lua Text Filter for \"%s\":\124n\124nFunction receives one parameter: text. It must return new output text.",
+	text = "Edit Lua Text Filter for \"%s\":\124n\124nFunction receives one parameter: text. It must return new output text (string or number).",
 	button1 = SAVE,
 	button2 = "Validate",
 	button3 = CANCEL,
 	OnAccept = function(self, data)
 		data.options.luaTextFilter = strtrim(self.editBox:GetText());
-		ValidateTextFilter(data.options.luaTextFilter, data.broker);
+		if(data.options.luaTextFilter and data.options.luaTextFilter ~= "") then
+			ValidateTextFilter(data.options.luaTextFilter, data.broker);
+		else
+			A:AddMessage("Cleared custom text filter.");
+			data.options.luaTextFilter = nil;
+		end
 		
 		self.editBox:SetText("");
 		A:UpdateCandy();
@@ -102,10 +134,6 @@ StaticPopupDialogs["CANDY_LUA_TEXT_EDIT"] = {
 		ChatEdit_FocusActiveWindow();
 		self.editBox:SetText("");
 		self.defaultWidth = nil;
-	end,
-	OnAlt = function(self, data)
-		-- data.options.luaTextFilter = nil;
-		-- A:UpdateCandy();
 	end,
 	
 	hasEditBox = 1,
@@ -529,7 +557,7 @@ function A:OpenCandyOptions(frame, broker)
 					text = " ", isTitle = true, notCheckable = true,
 				},
 				{
-					text = "Show only when Holding", isTitle = true, notCheckable = true,
+					text = "Show only when holding", isTitle = true, notCheckable = true,
 				},
 				{
 					text = "CTRL",
