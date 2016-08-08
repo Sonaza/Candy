@@ -1,3 +1,7 @@
+## 2.0.4
+* Fixed error if user supplied text filter returned invalid result.
+* Added warnings if custom callback result is unexpected. Additionally text filter now displays current callback output on validation.
+
 ## 2.0.3
 * Fixed error with fade in and out animations if visibility status changed while animation was still playing.
 * Tweaking frame hiding some more.
