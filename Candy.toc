@@ -2,10 +2,9 @@
 ## Title: Candy
 ## Notes: Candybar sized DataBroker docks
 ## Author: Sonaza
-## Version: 2.0.4
+## Version: 2.0.5
 ## SavedVariables: CandyDB
 
-#@no-lib-strip@
 libs\LibStub\LibStub.lua
 libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
 libs\AceAddon-3.0\AceAddon-3.0.xml
@@ -16,8 +15,6 @@ libs\AceGUI-3.0\AceGUI-3.0.xml
 libs\AceGUI-3.0-SharedMediaWidgets\widget.xml
 libs\AceConfig-3.0\AceConfig-3.0.xml
 libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
-#@end-no-lib-strip@
-
 libs\FlyPaper\FlyPaper.lua
 
 core.lua

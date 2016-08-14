@@ -1,3 +1,8 @@
+## 2.0.5
+* Added caching for compiled callbacks to lower memory usage.
+* Fixed visibility clearing actually clearing text filter instead. Oops.
+* Fixed script validation. It previously let through any syntactically valid code that still wouldn't work. Now it performs proper checks and will block code that won't work or would cause errors.
+
 ## 2.0.4
 * Fixed error if user supplied text filter returned invalid result.
 * Added warnings if custom callback result is unexpected. Additionally text filter now displays current callback output on validation.

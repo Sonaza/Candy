@@ -1,21 +1,18 @@
 ------------------------------------------------------------
 -- Candy by Sonaza
+-- All rights reserved
+-- http://sonaza.com
 ------------------------------------------------------------
 
-local ADDON_NAME, SHARED_DATA = ...;
+local ADDON_NAME = ...;
+local addon = LibStub("AceAddon-3.0"):NewAddon(select(2, ...), ADDON_NAME, "AceEvent-3.0");
+_G[ADDON_NAME] = addon;
 
-local _G = getfenv(0);
-
-local LibStub = LibStub;
-local A = LibStub("AceAddon-3.0"):NewAddon(ADDON_NAME, "AceEvent-3.0");
-_G[ADDON_NAME] = A;
-SHARED_DATA[1] = A;
-
-local ldb = LibStub("LibDataBroker-1.1");
+local LibDataBroker = LibStub("LibDataBroker-1.1");
 local AceDB = LibStub("AceDB-3.0");
 
-local LSM = LibStub("LibSharedMedia-3.0");
-LSM:Register("font", "DorisPP", [[Interface\Addons\Candy\media\DORISPP.ttf]]);
+local LibSharedMedia = LibStub("LibSharedMedia-3.0");
+LibSharedMedia:Register("font", "DorisPP", [[Interface\Addons\Candy\media\DORISPP.ttf]]);
 
 local CANDY_DEFAULT_FONT = "DorisPP";
 
@@ -31,10 +28,10 @@ local frameStrata = {
 	"FULLSCREEN_DIALOG",
 	"TOOLTIP",
 };
-A.frameStrata = frameStrata;
+addon.frameStrata = frameStrata;
 
 -- ENUMS
-SHARED_DATA[2] = {
+addon.E = {
 	VISIBILITY_ALWAYS 			= 0x1,
 	VISIBILITY_IN_COMBAT 		= 0x2,
 	VISIBILITY_OUT_OF_COMBAT 	= 0x3,
@@ -47,26 +44,26 @@ SHARED_DATA[2] = {
 	GROUPMODE_SOLO 				= 0x2,
 	GROUPMODE_INPARTY 			= 0x3,
 };
-local E = SHARED_DATA[2];
+local E = addon.E;
 
-function A:OnInitialize()
-	A:RegisterEvent("PLAYER_ENTERING_WORLD");
-	A:RegisterEvent("ZONE_CHANGED");
-	A:RegisterEvent("ZONE_CHANGED_NEW_AREA", "ZONE_CHANGED");
+function addon:OnInitialize()
+	addon:RegisterEvent("PLAYER_ENTERING_WORLD");
+	addon:RegisterEvent("ZONE_CHANGED");
+	addon:RegisterEvent("ZONE_CHANGED_NEW_AREA", "ZONE_CHANGED");
 	
-	A:RegisterEvent("PLAYER_REGEN_DISABLED");
-	A:RegisterEvent("PLAYER_REGEN_ENABLED");
+	addon:RegisterEvent("PLAYER_REGEN_DISABLED");
+	addon:RegisterEvent("PLAYER_REGEN_ENABLED");
 	
-	A:RegisterEvent("PET_BATTLE_OPENING_START");
-	A:RegisterEvent("PET_BATTLE_OVER");
+	addon:RegisterEvent("PET_BATTLE_OPENING_START");
+	addon:RegisterEvent("PET_BATTLE_OVER");
 	
-	A:RegisterEvent("MODIFIER_STATE_CHANGED");
+	addon:RegisterEvent("MODIFIER_STATE_CHANGED");
 end
 
-function A:OnEnable()
+function addon:OnEnable()
 	SLASH_CANDY1	= "/candy";
 	SLASH_CANDY2	= "/cd";
-	SlashCmdList["CANDY"] = function(command) A:ShowOptions(command); end
+	SlashCmdList["CANDY"] = function(command) addon:ShowOptions(command); end
 	
 	local defaults = {
 		global = {
@@ -140,49 +137,49 @@ function A:OnEnable()
 	
 	self.db = AceDB:New(ADDON_NAME .. "DB", defaults);
 	
-	A.ActiveBars = {};
+	addon.ActiveBars = {};
 	
 	CreateFrame("Frame"):SetScript("OnUpdate", function(self, elapsed)
 		self.elapsed = (self.elapsed or 0) + elapsed;
 		
 		if(self.elapsed >= 0.02) then
-			A:UpdateVisibility();
+			addon:UpdateVisibility();
 			self.elapsed = 0;
 		end
 	end);
 end
 
-function A:PLAYER_ENTERING_WORLD()
-	A:RestoreBars();
-	A:UnregisterEvent("PLAYER_ENTERING_WORLD");
+function addon:PLAYER_ENTERING_WORLD()
+	addon:RestoreBars();
+	addon:UnregisterEvent("PLAYER_ENTERING_WORLD");
 end
 
-function A:ZONE_CHANGED()
-	A:UpdateVisibility();
+function addon:ZONE_CHANGED()
+	addon:UpdateVisibility();
 end
 
-function A:PLAYER_REGEN_DISABLED()
-	A:LockBars();
-	A:UpdateVisibility(true);
+function addon:PLAYER_REGEN_DISABLED()
+	addon:LockBars();
+	addon:UpdateVisibility(true);
 end
 
-function A:PLAYER_REGEN_ENABLED()
-	A:UpdateVisibility(false);
+function addon:PLAYER_REGEN_ENABLED()
+	addon:UpdateVisibility(false);
 end
 
-function A:MODIFIER_STATE_CHANGED()
-	A:UpdateVisibility();
+function addon:MODIFIER_STATE_CHANGED()
+	addon:UpdateVisibility();
 end
 
-function A:PET_BATTLE_OPENING_START()
-	A:UpdateVisibility();
+function addon:PET_BATTLE_OPENING_START()
+	addon:UpdateVisibility();
 end
 
-function A:PET_BATTLE_OVER()
-	A:UpdateVisibility();
+function addon:PET_BATTLE_OVER()
+	addon:UpdateVisibility();
 end
 
-function A:PlayerInInstance()
+function addon:PlayerInInstance()
 	local name, instanceType = GetInstanceInfo();
 	
 	if(instanceType == "none" or C_Garrison.IsOnGarrisonMap()) then
@@ -192,28 +189,65 @@ function A:PlayerInInstance()
 	return true, instanceType;
 end
 
-function A:IsPlayerInAGroup()
+function addon:IsPlayerInAGroup()
 	return IsInRaid() or IsInGroup();
 end
 
-function A:UpdateCandyBars()
-	for broker, candyBar in pairs(A.ActiveBars) do
+function addon:UpdateCandyBars()
+	for broker, candyBar in pairs(addon.ActiveBars) do
 		candyBar:SetFrameStrata(candyBar.data.frameStrata);
-		A:UpdateCandyText(broker);
+		addon:UpdateCandyText(broker);
 	end
 	
-	A:UpdateVisibility();
+	addon:UpdateVisibility();
 end
 
-function A:StripColor(text)
+function addon:StripColor(text)
 	if(not text) then return "" end
 	return string.gsub(string.gsub(text, "\124c%w%w%w%w%w%w%w%w", ""), "\124r", "");
 end
 
-function A:UpdateVisibility(inCombat)
+function addon:MarkForRecompile(broker)
+	local candyBar = addon:GetCandy(broker);
+	candyBar.textFilterCallback = nil;
+	candyBar.visibilityCallback = nil;
+	collectgarbage("collect");
+end
+
+function addon:CompileTextFilterScript(broker, candyBar, script)
+	if(candyBar.textFilterCallback) then
+		return candyBar.textFilterCallback;
+	end
+	
+	local script = string.format('return (function(text) %s end)(...)', script or "return text;");
+	local callbackFunction, scriptError = loadstring(script, "Candy-TextFilter-" .. broker);
+	
+	if(callbackFunction) then
+		candyBar.textFilterCallback = callbackFunction;
+	end
+	
+	return callbackFunction;
+end
+
+function addon:CompileVisibilityScript(broker, candyBar, script)
+	if(candyBar.visibilityCallback) then
+		return candyBar.visibilityCallback;
+	end
+	
+	local script = string.format('return (function(text, icon) %s end)(...)', script or "return true;");
+	local callbackFunction, scriptError = loadstring(script, "Candy-Visibility-" .. broker);
+	
+	if(callbackFunction) then
+		candyBar.visibilityCallback = callbackFunction;
+	end
+	
+	return callbackFunction;
+end
+
+function addon:UpdateVisibility(inCombat)
 	local inCombat = inCombat or InCombatLockdown();
 	
-	for broker, candyBar in pairs(A.ActiveBars) do
+	for broker, candyBar in pairs(addon.ActiveBars) do
 		local shouldShow = true;
 		
 		if(self.db.global.locked) then
@@ -230,7 +264,7 @@ function A:UpdateVisibility(inCombat)
 			end
 			
 			if(shouldShow and visibility.instanceMode ~= E.INSTANCEMODE_EVERYWHERE) then
-				local inInstance = A:PlayerInInstance();
+				local inInstance = addon:PlayerInInstance();
 				
 				if(not inInstance and visibility.instanceMode == E.INSTANCEMODE_INSIDE) then
 					shouldShow = false;
@@ -240,7 +274,7 @@ function A:UpdateVisibility(inCombat)
 			end
 			
 			if(shouldShow and visibility.groupMode ~= E.GROUPMODE_ALWAYS) then
-				local playerInGroup = A:IsPlayerInAGroup();
+				local playerInGroup = addon:IsPlayerInAGroup();
 				
 				if(visibility.groupMode == E.GROUPMODE_SOLO and playerInGroup) then
 					shouldShow = false;
@@ -256,14 +290,17 @@ function A:UpdateVisibility(inCombat)
 			end
 			
 			if(shouldShow and visibility.customLua) then
-				local script = string.format('return (function(text, icon) %s end)(...)', visibility.customLua or "return true;");
-				local callbackFunction, scriptError = loadstring(script, "Candy-Visibility-" .. broker);
+				local callbackFunction = addon:CompileVisibilityScript(broker, candyBar, visibility.customLua);
 				
 				if(callbackFunction) then
-					local module = ldb:GetDataObjectByName(broker);
+					local module = LibDataBroker:GetDataObjectByName(broker);
 					
-					local result = callbackFunction(A:StripColor(module.text), module.icon);
-					shouldShow = shouldShow and result;
+					local success, result = pcall(callbackFunction, addon:StripColor(module.text), module.icon);
+					if(success) then
+						shouldShow = shouldShow and result;
+					else
+						print(result);
+					end
 				end
 			end
 		end
@@ -279,57 +316,62 @@ function A:UpdateVisibility(inCombat)
 end
 
 function CandyFrame_OnFadeIn(self)
+	self:GetParent().isVisible = true;
+	self:GetParent():SetAlpha(1);
+	
 	if(InCombatLockdown()) then return end
 	if(not self:GetParent().data.isClickthrough) then
 		self:GetParent():EnableMouse(true);
 	end
-	self:GetParent().isVisible = true;
 	self:GetParent():Show();
-	A:UpdateCandyText(self:GetParent().broker);
+	addon:UpdateCandyText(self:GetParent().broker);
 end
 
 function CandyFrame_OnFadeOut(self)
+	self:GetParent().isVisible = false;
+	
 	if(InCombatLockdown()) then return end
 	self:GetParent():EnableMouse(false);
-	self:GetParent().isVisible = false;
 end
 
 function CandyFrame_OnFadeOutFinish(self)
 	self:GetParent().text:SetText("");
+	self:GetParent():SetAlpha(0);
+	
 	if(not InCombatLockdown()) then
 		self:GetParent():Hide();
 	end
 end
 
-function A:AddCandy(broker)
+function addon:AddCandy(broker)
 	local broker = strtrim(broker or "");
 	
-	A:UnlockBars();
+	addon:UnlockBars();
 	
-	local candyBar = A:CreateCandyBar(broker, true);
+	local candyBar = addon:CreateCandyBar(broker, true);
 	if(candyBar) then
 		candyBar.data = self.db.global.bars[broker];
-		A:UpdateCandyText(broker);
+		addon:UpdateCandyText(broker);
 	end
 end
 
-function A:RemoveCandy(broker)
+function addon:RemoveCandy(broker)
 	if(self.db.global.bars[broker]) then
-		A.ActiveBars[broker]:Hide();
+		addon.ActiveBars[broker]:Hide();
 		
 		self.db.global.bars[broker] = nil;
-		A.ActiveBars[broker] = nil;
+		addon.ActiveBars[broker] = nil;
 		
-		ldb.UnregisterCallback(self, "LibDataBroker_AttributeChanged_" .. broker);
+		LibDataBroker.UnregisterCallback(self, "LibDataBroker_AttributeChanged_" .. broker);
 	end
 end
 
-function A:GetCandy(broker)
-	return A.ActiveBars[broker], ldb:GetDataObjectByName(broker);
+function addon:GetCandy(broker)
+	return addon.ActiveBars[broker], LibDataBroker:GetDataObjectByName(broker);
 end
 
-function A:CreateCandyBar(broker, isNew)
-	local module = ldb:GetDataObjectByName(broker);
+function addon:CreateCandyBar(broker, isNew)
+	local module = LibDataBroker:GetDataObjectByName(broker);
 	if(not module) then return false end
 	
 	local frameName = string.format("Candy%sFrame", broker);
@@ -367,18 +409,18 @@ function A:CreateCandyBar(broker, isNew)
 	
 	candyBar:SetFrameStrata(self.db.global.bars[broker].frameStrata);
 	
-	A.ActiveBars[broker] = candyBar;
+	addon.ActiveBars[broker] = candyBar;
 	
-	ldb.RegisterCallback(self, "LibDataBroker_AttributeChanged_" .. broker, "AttributeChanged");
+	LibDataBroker.RegisterCallback(self, "LibDataBroker_AttributeChanged_" .. broker, "AttributeChanged");
 	
 	return candyBar, module;
 end
 
-function A:RestoreBars()
-	if(not A.db.global.enabled) then return end
+function addon:RestoreBars()
+	if(not addon.db.global.enabled) then return end
 	
 	for broker, data in pairs(self.db.global.bars) do
-		local candyBar, module = A:CreateCandyBar(broker);
+		local candyBar, module = addon:CreateCandyBar(broker);
 		
 		if(candyBar) then
 			candyBar.data = data;
@@ -387,7 +429,7 @@ function A:RestoreBars()
 		end
 	end
 	
-	for broker, candyBar in pairs(A.ActiveBars) do
+	for broker, candyBar in pairs(addon.ActiveBars) do
 		candyBar:ClearAllPoints();
 		
 		-- Actually there will never be more than 1 anchor per frame
@@ -407,17 +449,17 @@ function A:RestoreBars()
 		end
 		
 		local hasParent = (relativeFrame ~= nil);
-		A:ChangeBackground(candyBar, hasParent);
+		addon:ChangeBackground(candyBar, hasParent);
 	end
 	
 	if(self.db.global.locked) then
-		A:LockBars();
+		addon:LockBars();
 	end
 	
-	A:UpdateCandyBars();
+	addon:UpdateCandyBars();
 end
 
-function A:ChangeBackground(frame, hasParent)
+function addon:ChangeBackground(frame, hasParent)
 	if(not frame) then return end
 	
 	if(hasParent) then
@@ -427,20 +469,20 @@ function A:ChangeBackground(frame, hasParent)
 	end
 end
 
-function A:ResetAnchors()
+function addon:ResetAnchors()
 	local numBrokers = 0;
-	for broker, candyBar in pairs(A.ActiveBars) do
+	for broker, candyBar in pairs(addon.ActiveBars) do
 		numBrokers = numBrokers + 1;
 	end
 	
 	local index = 0;
-	for broker, candyBar in pairs(A.ActiveBars) do
+	for broker, candyBar in pairs(addon.ActiveBars) do
 		local y = index * 20 - (numBrokers / 2 * 20);
 		
 		candyBar:ClearAllPoints();
 		candyBar:SetPoint("CENTER", UIParent, "CENTER", 0, y);
 		
-		A:ChangeBackground(candyBar, false);
+		addon:ChangeBackground(candyBar, false);
 		
 		candyBar.data.anchors = {};
 		candyBar.data.anchors[1] = {
@@ -459,31 +501,34 @@ function A:ResetAnchors()
 	end
 end
 
-function A:GetModuleText(module)
+function addon:GetModuleText(module)
 	if(module.text) then return tostring(module.text) end
 	if(module.label) then return tostring(module.label) end
 	return "";
 end
 
-function A:UpdateCandyText(broker)
-	local candyBar, module = A:GetCandy(broker);
+function addon:UpdateCandyText(broker)
+	local candyBar, module = addon:GetCandy(broker);
 	if(not candyBar or not module) then return end
 	
 	candyBar.text:SetJustifyH(candyBar.data.justify);
 	
-	local text = A:GetModuleText(module);
+	local text = addon:GetModuleText(module);
 	
 	if(candyBar.data.stripColor) then
-		text = A:StripColor(text);
+		text = addon:StripColor(text);
 	end
 	
 	if(candyBar.data.luaTextFilter ~= nil) then
-		local script = string.format('return (function(text) %s end)(...)', candyBar.data.luaTextFilter or "return text;");
-		local filterFunction, scriptError = loadstring(script, "Candy-TextFilter-" .. candyBar.broker);
+		local callbackFunction = addon:CompileTextFilterScript(candyBar.broker, candyBar, candyBar.data.luaTextFilter);
 		
-		if(filterFunction) then
-			local result = filterFunction(text or "");
-			text = tostring(result) or text;
+		if(callbackFunction) then
+			local success, result = pcall(callbackFunction, text or "");
+			if(success) then
+				text = tostring(result) or text;
+			else
+				print(result);
+			end
 		end
 	end
 	
@@ -493,7 +538,7 @@ function A:UpdateCandyText(broker)
 	
 	candyBar.text:SetText(text);
 	
-	local fontPath = LSM:Fetch("font", self.db.global.fontFace);
+	local fontPath = LibSharedMedia:Fetch("font", self.db.global.fontFace);
 	
 	candyBar.text:SetFont(fontPath, candyBar.data.fontSize, candyBar.data.fontOutline or "");
 	candyBar.text:SetShadowColor(0, 0, 0, 0.9);
@@ -504,25 +549,25 @@ function A:UpdateCandyText(broker)
 	candyBar:SetWidth(stringWidth + 6);
 end
 
-function A:UpdateCandy()
-	for broker, candyBar in pairs(A.ActiveBars) do
-		local module = ldb:GetDataObjectByName(broker);
+function addon:UpdateCandy()
+	for broker, candyBar in pairs(addon.ActiveBars) do
+		local module = LibDataBroker:GetDataObjectByName(broker);
 		if(module) then
-			A:UpdateCandyText(broker);
+			addon:UpdateCandyText(broker);
 		end
 	end
 end
 
-function A:AttributeChanged(event, name, key, value)
+function addon:AttributeChanged(event, name, key, value)
 	if(key == "text" or key == "icon") then
-		A:UpdateCandyText(name);
+		addon:UpdateCandyText(name);
 	end
 end
 
-function A:LockBars()
+function addon:LockBars()
 	self.db.global.locked = true;
 	
-	for broker, candyBar in pairs(A.ActiveBars) do
+	for broker, candyBar in pairs(addon.ActiveBars) do
 		candyBar.background:Hide();
 		if(candyBar.data.isClickthrough) then
 			candyBar:EnableMouse(false);
@@ -535,38 +580,38 @@ function A:LockBars()
 		};
 	end
 	
-	A:UpdateVisibility();
+	addon:UpdateVisibility();
 end
 
-function A:UnlockBars()
+function addon:UnlockBars()
 	self.db.global.locked = false;
 	
-	for broker, candyBar in pairs(A.ActiveBars) do
+	for broker, candyBar in pairs(addon.ActiveBars) do
 		candyBar.background:Show();
 		candyBar:EnableMouse(true);
 	end
 	
-	A:UpdateVisibility();
+	addon:UpdateVisibility();
 end
 
 function CandyBarFrame_OnLoad(self)
 	self:RegisterForClicks("LeftButtonUp", "MiddleButtonUp", "RightButtonUp");
 	self:EnableMouse(true);
 	
-	A:ChangeBackground(self, false);
+	addon:ChangeBackground(self, false);
 end
 
-function A:ChangeJustify(candyBar, newJustify)
+function addon:ChangeJustify(candyBar, newJustify)
 	if(not candyBar or not newJustify) then return end
 	if(candyBar.data.justify == newJustify) then return end
 	
 	candyBar.data.justify = newJustify;
-	A:ConvertAnchor(candyBar, newJustify);
+	addon:ConvertAnchor(candyBar, newJustify);
 	
-	A:UpdateCandyText(candyBar.broker);
+	addon:UpdateCandyText(candyBar.broker);
 end
 
-function A:ConvertAnchor(frame, justify)
+function addon:ConvertAnchor(frame, justify)
 	if(not frame or not justify) then return end
 	
 	local numAnchors = #frame.data.anchors;
@@ -649,20 +694,20 @@ function A:ConvertAnchor(frame, justify)
 end
 
 function CandyBarFrame_OnClick(self, ...)
-	if(A.db.global.locked) then
-		local module = ldb:GetDataObjectByName(self.broker);
+	if(addon.db.global.locked) then
+		local module = LibDataBroker:GetDataObjectByName(self.broker);
 		if(module.OnClick) then
 			module.OnClick(self, ...);
 		end
 	else
 		local button = ...;
 		if(button == "RightButton") then
-			A:OpenCandyOptions(self, self.broker);
+			addon:OpenCandyOptions(self, self.broker);
 		end
 	end
 end
 
-function A:GetAnchors(frame)
+function addon:GetAnchors(frame)
 	local B, T = "BOTTOM", "TOP";
 	local x, y = frame:GetCenter();
 	
@@ -673,7 +718,7 @@ function A:GetAnchors(frame)
 	end
 end
 
-function A:PrepareTooltip(frame, anchorFrame)
+function addon:PrepareTooltip(frame, anchorFrame)
 	if(not frame or not anchorFrame) then return end
 	
 	frame:ClearAllPoints()
@@ -681,31 +726,31 @@ function A:PrepareTooltip(frame, anchorFrame)
 		frame:SetOwner(anchorFrame, "ANCHOR_NONE");
 	end	
 	
-	local a1, a2 = A:GetAnchors(anchorFrame);
+	local a1, a2 = addon:GetAnchors(anchorFrame);
 	frame:SetPoint(a1, anchorFrame, a2);
 end
 
 function CandyBarFrame_OnEnter(self)
-	if(not A.db.global.locked) then return end
+	if(not addon.db.global.locked) then return end
 	if(not self.data.showTooltip) then return end
 	if(InCombatLockdown()) then return end
 	
-	local module = ldb:GetDataObjectByName(self.broker);
+	local module = LibDataBroker:GetDataObjectByName(self.broker);
 	
 	if(module.tooltip) then
-		A:PrepareTooltip(module.tooltip, self);
+		addon:PrepareTooltip(module.tooltip, self);
 		if(module.tooltiptext) then
 			module.tooltip:SetText(module.tooltiptext);
 		end
 		module.tooltip:Show();
 	
 	elseif(module.OnTooltipShow) then
-		A:PrepareTooltip(GameTooltip, self);
+		addon:PrepareTooltip(GameTooltip, self);
 		module.OnTooltipShow(GameTooltip);
 		GameTooltip:Show();
 	
 	elseif(module.tooltiptext) then
-		A:PrepareTooltip(GameTooltip, self)
+		addon:PrepareTooltip(GameTooltip, self)
 		GameTooltip:SetText(module.tooltiptext);
 		GameTooltip:Show();		
 	
@@ -717,7 +762,7 @@ end
 function CandyBarFrame_OnLeave(self)
 	if(not self.data.showTooltip) then return end
 	
-	local module = ldb:GetDataObjectByName(self.broker);
+	local module = LibDataBroker:GetDataObjectByName(self.broker);
 	
 	if(module.OnTooltipShow) then
 		GameTooltip:Hide();
@@ -733,7 +778,7 @@ function CandyBarFrame_OnLeave(self)
 end
 
 function CandyBarFrame_OnMouseDown(self, button)
-	if(A.db.global.locked) then return end
+	if(addon.db.global.locked) then return end
 	
 	if(button == "LeftButton") then
 		CloseMenus();
@@ -752,12 +797,12 @@ local function distance2D(x1, y1, x2, y2)
 	return math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 end
 
-function A:GetFrameKeyPoints(frame)
+function addon:GetFrameKeyPoints(frame)
 	local left, bottom, width, height = frame:GetRect();
 	return left, left + width, bottom + height, bottom;
 end
 
-function A:FindClosestFrame(frame, tolerance)
+function addon:FindClosestFrame(frame, tolerance)
 	if(not frame) then return nil end
 	local tolerance = tolerance or 100;
 	
@@ -766,7 +811,7 @@ function A:FindClosestFrame(frame, tolerance)
 	local nearestFrame = nil;
 	local nearestDist = -1;
 	
-	for broker, candyBar in pairs(A.ActiveBars) do
+	for broker, candyBar in pairs(addon.ActiveBars) do
 		if(frame.broker ~= broker) then
 			local ax, ay = candyBar:GetCenter();
 			
@@ -781,14 +826,14 @@ function A:FindClosestFrame(frame, tolerance)
 	return nearestFrame;
 end
 
-function A:FrameHasParent(frame)
+function addon:FrameHasParent(frame)
 	if(not frame) then return end
 	
 	local _, relativeTo = frame:GetPoint();
 	return relativeTo ~= nil;
 end
 
-function A:VerticalSnap(frame, tolerance)
+function addon:VerticalSnap(frame, tolerance)
 	if(not frame) then return end
 	
 	local numPoints = frame:GetNumPoints();
@@ -797,8 +842,8 @@ function A:VerticalSnap(frame, tolerance)
 	local point, relativeTo, relativePoint, x, y = frame:GetPoint();
 	local bottom = frame:GetBottom();
 	
-	for broker, otherFrame in pairs(A.ActiveBars) do
-		if(frame.broker ~= broker and not A:FrameHasParent(otherFrame)) then
+	for broker, otherFrame in pairs(addon.ActiveBars) do
+		if(frame.broker ~= broker and not addon:FrameHasParent(otherFrame)) then
 			local obottom = otherFrame:GetBottom();
 			
 			local diff = bottom - obottom;
@@ -812,7 +857,7 @@ function A:VerticalSnap(frame, tolerance)
 end
 
 function CandyBarFrame_OnMouseUp(self, button)
-	if(A.db.global.locked) then return end
+	if(addon.db.global.locked) then return end
 	
 	if(self.isMoving and button == "LeftButton") then
 		self:StopMovingOrSizing();
@@ -822,7 +867,7 @@ function CandyBarFrame_OnMouseUp(self, button)
 			local offset = IsShiftKeyDown() and 5 or 0;
 			
 			local foundSnap = false;
-			for broker, candyBar in pairs(A.ActiveBars) do
+			for broker, candyBar in pairs(addon.ActiveBars) do
 				if(self.broker ~= candyBar.broker) then
 					local stickyPoint = FlyPaper.Stick(self, candyBar, 12 + offset, offset, offset);
 					if(stickyPoint) then
@@ -834,7 +879,7 @@ function CandyBarFrame_OnMouseUp(self, button)
 			end
 			
 			if(not foundSnap) then
-				A:VerticalSnap(self, 8);
+				addon:VerticalSnap(self, 8);
 			end
 		end
 		
@@ -846,7 +891,7 @@ function CandyBarFrame_OnMouseUp(self, button)
 			local point, relativeTo, relativePoint, x, y = self:GetPoint(index);
 			
 			local hasParent = (relativeTo ~= nil);
-			A:ChangeBackground(self, hasParent);
+			addon:ChangeBackground(self, hasParent);
 			
 			if(relativeTo) then
 				relativeTo = relativeTo:GetName();
@@ -866,7 +911,7 @@ function CandyBarFrame_OnMouseUp(self, button)
 		end
 		
 		if(numPoints == 1) then
-			A:ConvertAnchor(self, self.data.justify);
+			addon:ConvertAnchor(self, self.data.justify);
 		end
 	end
 end
