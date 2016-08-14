@@ -14,7 +14,7 @@ Candy adds singular customizable displays for DataBroker modules.
 
 Custom callbacks are simple calls to Lua functions.
 
-Text callback function receives one parameter: text. It expects a new string as return that will be used for display.
+Text callback function receives one parameter: text. It expects a new string (text or number allowed) as return that will be used for display.
 
 Example:
 
@@ -23,7 +23,7 @@ Example:
 return string.reverse(text);
 ```
 
-Visibility callback function receives two parameters: text and icon. It expects a boolean as return (true is visible).
+Visibility callback function receives two parameters: text (with color information stripped) and icon. It expects a boolean or nil as return (true is visible).
 
 Example:
 ```lua
