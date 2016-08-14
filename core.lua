@@ -210,6 +210,36 @@ function A:StripColor(text)
 	return string.gsub(string.gsub(text, "\124c%w%w%w%w%w%w%w%w", ""), "\124r", "");
 end
 
+function A:CompileTextFilterScript(broker, candyBar, script)
+	if(candyBar.textFilterCallback) then
+		return candyBar.textFilterCallback;
+	end
+	
+	local script = string.format('return (function(text) %s end)(...)', script or "return text;");
+	local callbackFunction, scriptError = loadstring(script, "Candy-TextFilter-" .. broker);
+	
+	if(callbackFunction) then
+		candyBar.textFilterCallback = callbackFunction;
+	end
+	
+	return callbackFunction;
+end
+
+function A:CompileVisibilityScript(broker, candyBar, script)
+	if(candyBar.visibilityCallback) then
+		return candyBar.visibilityCallback;
+	end
+	
+	local script = string.format('return (function(text, icon) %s end)(...)', script or "return true;");
+	local callbackFunction, scriptError = loadstring(script, "Candy-Visibility-" .. broker);
+	
+	if(callbackFunction) then
+		candyBar.visibilityCallback = callbackFunction;
+	end
+	
+	return callbackFunction;
+end
+
 function A:UpdateVisibility(inCombat)
 	local inCombat = inCombat or InCombatLockdown();
 	
@@ -256,8 +286,7 @@ function A:UpdateVisibility(inCombat)
 			end
 			
 			if(shouldShow and visibility.customLua) then
-				local script = string.format('return (function(text, icon) %s end)(...)', visibility.customLua or "return true;");
-				local callbackFunction, scriptError = loadstring(script, "Candy-Visibility-" .. broker);
+				local callbackFunction = A:CompileVisibilityScript(broker, candyBar, visibility.customLua);
 				
 				if(callbackFunction) then
 					local module = ldb:GetDataObjectByName(broker);
@@ -279,23 +308,26 @@ function A:UpdateVisibility(inCombat)
 end
 
 function CandyFrame_OnFadeIn(self)
+	self:GetParent().isVisible = true;
+	
 	if(InCombatLockdown()) then return end
 	if(not self:GetParent().data.isClickthrough) then
 		self:GetParent():EnableMouse(true);
 	end
-	self:GetParent().isVisible = true;
 	self:GetParent():Show();
 	A:UpdateCandyText(self:GetParent().broker);
 end
 
 function CandyFrame_OnFadeOut(self)
+	self:GetParent().isVisible = false;
+	
 	if(InCombatLockdown()) then return end
 	self:GetParent():EnableMouse(false);
-	self:GetParent().isVisible = false;
 end
 
 function CandyFrame_OnFadeOutFinish(self)
 	self:GetParent().text:SetText("");
+	
 	if(not InCombatLockdown()) then
 		self:GetParent():Hide();
 	end
@@ -478,11 +510,10 @@ function A:UpdateCandyText(broker)
 	end
 	
 	if(candyBar.data.luaTextFilter ~= nil) then
-		local script = string.format('return (function(text) %s end)(...)', candyBar.data.luaTextFilter or "return text;");
-		local filterFunction, scriptError = loadstring(script, "Candy-TextFilter-" .. candyBar.broker);
+		local callbackFunction = A:CompileTextFilterScript(candyBar.broker, candyBar, candyBar.data.luaTextFilter);
 		
-		if(filterFunction) then
-			local result = filterFunction(text or "");
+		if(callbackFunction) then
+			local result = callbackFunction(text or "");
 			text = tostring(result) or text;
 		end
 	end

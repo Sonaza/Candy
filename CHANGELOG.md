@@ -1,3 +1,7 @@
+## 2.0.5
+* Fixed visibility clearing actually clearing text filter instead. Oops.
+* Added caching for compiled callbacks to lower memory usage.
+
 ## 2.0.4
 * Fixed error if user supplied text filter returned invalid result.
 * Added warnings if custom callback result is unexpected. Additionally text filter now displays current callback output on validation.

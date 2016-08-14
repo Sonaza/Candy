@@ -38,7 +38,7 @@ local ValidateVisibilityCallback = function(script, broker)
 end
 
 StaticPopupDialogs["CANDY_LUA_VISIBILITY_EDIT"] = {
-	text = "Edit Custom Lua Visibility Callback for \"%s\":\124n\124nFunction receives two parameters: text and icon. It must return a boolean or nil.",
+	text = "Edit Custom Lua Visibility Callback for \"%s\":\124n\124nFunction receives two parameters: text (without color) and icon. It must return a boolean or nil.",
 	button1 = SAVE,
 	button2 = "Validate",
 	button3 = CANCEL,
@@ -48,14 +48,20 @@ StaticPopupDialogs["CANDY_LUA_VISIBILITY_EDIT"] = {
 			ValidateVisibilityCallback(data.options.visibility.customLua, data.broker);
 		else
 			A:AddMessage("Cleared custom visibility condition.");
-			data.options.luaTextFilter = nil;
+			data.options.visibility.customLua = nil;
 		end
+		
+		-- Reset cached compilation
+		data.visibilityCallback = nil;
 		
 		self.editBox:SetText("");
 	end,
 	OnCancel = function(self, data)
 		local script = strtrim(self.editBox:GetText());
 		ValidateVisibilityCallback(script, data.broker);
+		
+		-- Reset cached compilation
+		data.visibilityCallback = nil;
 		
 		return true;
 	end,
@@ -70,6 +76,9 @@ StaticPopupDialogs["CANDY_LUA_VISIBILITY_EDIT"] = {
 		ChatEdit_FocusActiveWindow();
 		self.editBox:SetText("");
 		self.defaultWidth = nil;
+		
+		-- Reset cached compilation
+		data.visibilityCallback = nil;
 	end,
 	
 	hasEditBox = 1,
@@ -114,12 +123,18 @@ StaticPopupDialogs["CANDY_LUA_TEXT_EDIT"] = {
 			data.options.luaTextFilter = nil;
 		end
 		
+		-- Reset cached compilation
+		data.textFilterCallback = nil;
+		
 		self.editBox:SetText("");
 		A:UpdateCandy();
 	end,
 	OnCancel = function(self, data)
 		local script = strtrim(self.editBox:GetText());
 		ValidateTextFilter(script, data.broker);
+		
+		-- Reset cached compilation
+		data.textFilterCallback = nil;
 		
 		return true;
 	end,
@@ -129,11 +144,14 @@ StaticPopupDialogs["CANDY_LUA_TEXT_EDIT"] = {
 		self.editBox:SetMaxLetters(0);
 		self.editBox:SetText(data.options.luaTextFilter or "");
 	end,
-	OnHide = function(self)
+	OnHide = function(self, data)
 		self.editBox:SetWidth(self.defaultWidth);
 		ChatEdit_FocusActiveWindow();
 		self.editBox:SetText("");
 		self.defaultWidth = nil;
+		
+		-- Reset cached compilation
+		data.textFilterCallback = nil;
 	end,
 	
 	hasEditBox = 1,
