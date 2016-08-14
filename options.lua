@@ -19,6 +19,11 @@ function addon:AddMessage(msg, ...)
 end
 
 local ValidateVisibilityCallback = function(script, broker)
+	if(script and strtrim(script) == "") then
+		addon:AddMessage("Script is empty. Visibility callback will be cleared.");
+		return;
+	end
+	
 	local script = string.format('return (function(text, icon) %s end)(...)', script or "return true;");
 	local compiled, scriptError = loadstring(script, "Candy-Visibility-" .. broker);
 	
@@ -59,8 +64,7 @@ StaticPopupDialogs["CANDY_LUA_VISIBILITY_EDIT"] = {
 			data.options.visibility.customLua = nil;
 		end
 		
-		-- Reset cached compilation
-		data.visibilityCallback = nil;
+		addon:MarkForRecompile(data.broker);
 		
 		self.editBox:SetText("");
 	end,
@@ -68,8 +72,7 @@ StaticPopupDialogs["CANDY_LUA_VISIBILITY_EDIT"] = {
 		local script = strtrim(self.editBox:GetText());
 		ValidateVisibilityCallback(script, data.broker);
 		
-		-- Reset cached compilation
-		data.visibilityCallback = nil;
+		addon:MarkForRecompile(data.broker);
 		
 		return true;
 	end,
@@ -85,8 +88,7 @@ StaticPopupDialogs["CANDY_LUA_VISIBILITY_EDIT"] = {
 		self.editBox:SetText("");
 		self.defaultWidth = nil;
 		
-		-- Reset cached compilation
-		data.visibilityCallback = nil;
+		addon:MarkForRecompile(data.broker);
 	end,
 	
 	hasEditBox = 1,
@@ -95,6 +97,11 @@ StaticPopupDialogs["CANDY_LUA_VISIBILITY_EDIT"] = {
 };
 
 local ValidateTextFilter = function(script, broker)
+	if(script and strtrim(script) == "") then
+		addon:AddMessage("Script is empty. Text filter will be cleared.");
+		return;
+	end
+	
 	local script = string.format('return (function(text) %s end)(...)', script or "return text;");
 	local compiled, scriptError = loadstring(script, "Candy-TextFilter-" .. broker);
 	
@@ -137,8 +144,7 @@ StaticPopupDialogs["CANDY_LUA_TEXT_EDIT"] = {
 			data.options.luaTextFilter = nil;
 		end
 		
-		-- Reset cached compilation
-		data.textFilterCallback = nil;
+		addon:MarkForRecompile(data.broker);
 		
 		self.editBox:SetText("");
 		addon:UpdateCandy();
@@ -147,8 +153,7 @@ StaticPopupDialogs["CANDY_LUA_TEXT_EDIT"] = {
 		local script = strtrim(self.editBox:GetText());
 		ValidateTextFilter(script, data.broker);
 		
-		-- Reset cached compilation
-		data.textFilterCallback = nil;
+		addon:MarkForRecompile(data.broker);
 		
 		return true;
 	end,
@@ -164,8 +169,7 @@ StaticPopupDialogs["CANDY_LUA_TEXT_EDIT"] = {
 		self.editBox:SetText("");
 		self.defaultWidth = nil;
 		
-		-- Reset cached compilation
-		data.textFilterCallback = nil;
+		addon:MarkForRecompile(data.broker);
 	end,
 	
 	hasEditBox = 1,

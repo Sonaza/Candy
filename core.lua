@@ -207,6 +207,13 @@ function addon:StripColor(text)
 	return string.gsub(string.gsub(text, "\124c%w%w%w%w%w%w%w%w", ""), "\124r", "");
 end
 
+function addon:MarkForRecompile(broker)
+	local candyBar = addon:GetCandy(broker);
+	candyBar.textFilterCallback = nil;
+	candyBar.visibilityCallback = nil;
+	collectgarbage("collect");
+end
+
 function addon:CompileTextFilterScript(broker, candyBar, script)
 	if(candyBar.textFilterCallback) then
 		return candyBar.textFilterCallback;
@@ -310,6 +317,7 @@ end
 
 function CandyFrame_OnFadeIn(self)
 	self:GetParent().isVisible = true;
+	self:GetParent():SetAlpha(1);
 	
 	if(InCombatLockdown()) then return end
 	if(not self:GetParent().data.isClickthrough) then
@@ -328,6 +336,7 @@ end
 
 function CandyFrame_OnFadeOutFinish(self)
 	self:GetParent().text:SetText("");
+	self:GetParent():SetAlpha(0);
 	
 	if(not InCombatLockdown()) then
 		self:GetParent():Hide();
