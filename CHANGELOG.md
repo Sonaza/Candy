@@ -1,3 +1,7 @@
+## 2.0.6
+* TOC bump.
+* Remove spaces from Candy bar frame names.
+
 ## 2.0.5
 * Added caching for compiled callbacks to lower memory usage.
 * Fixed visibility clearing actually clearing text filter instead. Oops.

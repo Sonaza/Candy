@@ -305,10 +305,10 @@ function addon:UpdateVisibility(inCombat)
 			end
 		end
 		
-		if(shouldShow and not candyBar.isVisible) then
+		if(shouldShow and (not candyBar.isVisible or not candyBar:IsVisible())) then
 			candyBar.fadeout:Stop();
 			candyBar.fadein:Play();
-		elseif(not shouldShow and candyBar.isVisible) then
+		elseif(not shouldShow and (candyBar.isVisible or candyBar:IsVisible())) then
 			candyBar.fadein:Stop();
 			candyBar.fadeout:Play();
 		end
@@ -317,6 +317,16 @@ end
 
 function CandyFrame_OnFadeIn(self)
 	self:GetParent().isVisible = true;
+	
+	if(InCombatLockdown()) then return end
+	if(not self:GetParent().data.isClickthrough) then
+		self:GetParent():EnableMouse(true);
+	end
+	self:GetParent():Show();
+	addon:UpdateCandyText(self:GetParent().broker);
+end
+
+function CandyFrame_OnFadeInFinish(self)
 	self:GetParent():SetAlpha(1);
 	
 	if(InCombatLockdown()) then return end
@@ -375,6 +385,7 @@ function addon:CreateCandyBar(broker, isNew)
 	if(not module) then return false end
 	
 	local frameName = string.format("Candy%sFrame", broker);
+	frameName = string.gsub(frameName, " ", "");
 	
 	local candyBar = _G[frameName];
 	if(not candyBar) then
@@ -437,6 +448,7 @@ function addon:RestoreBars()
 		
 		local relativeFrame;
 		if(anchor.relativeTo) then
+			anchor.relativeTo = string.gsub(anchor.relativeTo, " ", "");
 			relativeFrame = _G[anchor.relativeTo];
 		end
 		
