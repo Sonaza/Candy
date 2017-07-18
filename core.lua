@@ -83,6 +83,7 @@ function addon:OnEnable()
 					stripColor = false,
 					
 					showIcon = false,
+					showText = true,
 					
 					fontSize = 10,
 					fontOutline = nil,
@@ -138,6 +139,8 @@ function addon:OnEnable()
 	self.db = AceDB:New(ADDON_NAME .. "DB", defaults);
 	
 	addon.ActiveBars = {};
+	
+	LibDataBroker.RegisterCallback(self, "LibDataBroker_DataObjectCreated", "DataObjectCreated");
 	
 	CreateFrame("Frame"):SetScript("OnUpdate", function(self, elapsed)
 		self.elapsed = (self.elapsed or 0) + elapsed;
@@ -427,19 +430,29 @@ function addon:CreateCandyBar(broker, isNew)
 	return candyBar, module;
 end
 
-function addon:RestoreBars()
+function addon:DataObjectCreated(event, name, dataobj)
 	if(not addon.db.global.enabled) then return end
+	if(not name or not dataobj) then return end
 	
-	for broker, data in pairs(self.db.global.bars) do
-		local candyBar, module = addon:CreateCandyBar(broker);
-		
-		if(candyBar) then
-			candyBar.data = data;
-			
-			candyBar:SetFrameStrata(data.frameStrata);
-		end
+	if(not self.db.global.bars[name] or not self.db.global.bars[name].enabled) then return end
+	if(addon.ActiveBars[name]) then return end
+	
+	local candyBar, module = addon:CreateCandyBar(name);
+	if(not candyBar) then return end
+	
+	candyBar.data = self.db.global.bars[name];
+	candyBar:SetFrameStrata(candyBar.data.frameStrata);
+	
+	addon:UpdateCandyAnchors();
+	
+	if(self.db.global.locked) then
+		addon:LockBars();
 	end
 	
+	addon:UpdateCandyText(name);
+end
+
+function addon:UpdateCandyAnchors()
 	for broker, candyBar in pairs(addon.ActiveBars) do
 		candyBar:ClearAllPoints();
 		
@@ -463,6 +476,23 @@ function addon:RestoreBars()
 		local hasParent = (relativeFrame ~= nil);
 		addon:ChangeBackground(candyBar, hasParent);
 	end
+end
+
+function addon:RestoreBars()
+	if(not addon.db.global.enabled) then return end
+	
+	for broker, data in pairs(self.db.global.bars) do
+		if(data.enabled) then
+			local candyBar, module = addon:CreateCandyBar(broker);
+			
+			if(candyBar) then
+				candyBar.data = data;
+				candyBar:SetFrameStrata(data.frameStrata);
+			end
+		end
+	end
+	
+	addon:UpdateCandyAnchors();
 	
 	if(self.db.global.locked) then
 		addon:LockBars();
@@ -513,39 +543,39 @@ function addon:ResetAnchors()
 	end
 end
 
-function addon:GetModuleText(module)
-	if(module.text) then return tostring(module.text) end
-	if(module.label) then return tostring(module.label) end
-	return "";
-end
-
 function addon:UpdateCandyText(broker)
 	local candyBar, module = addon:GetCandy(broker);
 	if(not candyBar or not module) then return end
 	
 	candyBar.text:SetJustifyH(candyBar.data.justify);
 	
-	local text = addon:GetModuleText(module);
+	local text = "";
 	
-	if(candyBar.data.stripColor) then
-		text = addon:StripColor(text);
-	end
-	
-	if(candyBar.data.luaTextFilter ~= nil) then
-		local callbackFunction = addon:CompileTextFilterScript(candyBar.broker, candyBar, candyBar.data.luaTextFilter);
+	if(candyBar.data.showText) then
+		text = module.text or module.label or broker or "no text";
 		
-		if(callbackFunction) then
-			local success, result = pcall(callbackFunction, text or "");
-			if(success) then
-				text = tostring(result) or text;
-			else
-				print(result);
+		if(candyBar.data.stripColor) then
+			text = addon:StripColor(text);
+		end
+		
+		if(candyBar.data.luaTextFilter ~= nil) then
+			local callbackFunction = addon:CompileTextFilterScript(candyBar.broker, candyBar, candyBar.data.luaTextFilter);
+			
+			if(callbackFunction) then
+				local success, result = pcall(callbackFunction, text or "");
+				if(success) then
+					text = tostring(result) or text;
+				else
+					print(result);
+				end
 			end
 		end
 	end
 	
-	if(candyBar.data.showIcon and module.icon) then
-		text = string.format("%s%s", ICON_PATTERN:format(module.icon) or "", text)
+	local formattedIcon = module.icon and ICON_PATTERN:format(module.icon) or "";
+	
+	if(candyBar.data.showIcon or text == "") then
+		text = string.format("%s%s", formattedIcon, text);
 	end
 	
 	candyBar.text:SetText(text);
@@ -561,17 +591,8 @@ function addon:UpdateCandyText(broker)
 	candyBar:SetWidth(stringWidth + 6);
 end
 
-function addon:UpdateCandy()
-	for broker, candyBar in pairs(addon.ActiveBars) do
-		local module = LibDataBroker:GetDataObjectByName(broker);
-		if(module) then
-			addon:UpdateCandyText(broker);
-		end
-	end
-end
-
 function addon:AttributeChanged(event, name, key, value)
-	if(key == "text" or key == "icon") then
+	if(key == "text" or key == "label" or key == "icon") then
 		addon:UpdateCandyText(name);
 	end
 end

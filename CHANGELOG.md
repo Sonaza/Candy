@@ -1,3 +1,7 @@
+## 2.0.7
+* Added option to toggle visibility of the text per module.
+* Fixed error where some slower to load data broker modules wouldn't sometimes be added on screen at all.
+
 ## 2.0.6
 * TOC bump.
 * Remove spaces from Candy bar frame names.

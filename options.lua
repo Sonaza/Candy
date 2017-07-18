@@ -147,7 +147,7 @@ StaticPopupDialogs["CANDY_LUA_TEXT_EDIT"] = {
 		addon:MarkForRecompile(data.broker);
 		
 		self.editBox:SetText("");
-		addon:UpdateCandy();
+		addon:UpdateCandyBars();
 	end,
 	OnCancel = function(self, data)
 		local script = strtrim(self.editBox:GetText());
@@ -488,8 +488,28 @@ function addon:OpenCandyOptions(frame, broker)
 		},
 		{
 			text = "Show icon",
-			func = function() candyBar.data.showIcon = not candyBar.data.showIcon; addon:UpdateCandyText(candyBar.broker); end,
+			func = function()
+				candyBar.data.showIcon = not candyBar.data.showIcon;
+				if(not candyBar.data.showText) then
+					candyBar.data.showText = true;
+					addon:AddMessage("Toggling text back on for '%s' candy bar.", candyBar.broker);
+				end
+				addon:UpdateCandyText(candyBar.broker);
+			end,
 			checked = function() return candyBar.data.showIcon; end,
+			isNotRadio = true,
+		},
+		{
+			text = "Show text",
+			func = function()
+				candyBar.data.showText = not candyBar.data.showText;
+				if(not candyBar.data.showIcon) then
+					candyBar.data.showIcon = true;
+					addon:AddMessage("Toggling icon back on for '%s' candy bar.", candyBar.broker);
+				end
+				addon:UpdateCandyText(candyBar.broker);
+			end,
+			checked = function() return candyBar.data.showText; end,
 			isNotRadio = true,
 		},
 		{
