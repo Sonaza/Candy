@@ -1,3 +1,6 @@
+## 2.0.8
+* Fixed bug caused by previous update.
+
 ## 2.0.7
 * Added option to toggle visibility of the text per module.
 * Fixed error where some slower to load data broker modules wouldn't sometimes be added on screen at all.

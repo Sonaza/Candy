@@ -33,7 +33,7 @@ local ValidateVisibilityCallback = function(script, broker)
 		local _, module = addon:GetCandy(broker);
 		if(not module) then return end
 		
-		local text = addon:GetModuleText(module);
+		local text = module.text or module.label or broker or "";
 		
 		local success, result = pcall(compiled, text, module.icon or "");
 		if(success) then
@@ -111,7 +111,7 @@ local ValidateTextFilter = function(script, broker)
 		local _, module = addon:GetCandy(broker);
 		if(not module) then return end
 		
-		local text = addon:GetModuleText(module);
+		local text = module.text or module.label or broker or "";
 		
 		local success, result = pcall(compiled, text);
 		if(success) then

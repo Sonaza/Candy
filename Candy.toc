@@ -2,7 +2,7 @@
 ## Title: Candy
 ## Notes: Candybar sized DataBroker docks
 ## Author: Sonaza
-## Version: 2.0.7
+## Version: 2.0.8
 ## SavedVariables: CandyDB
 
 libs\LibStub\LibStub.lua
