@@ -1,3 +1,7 @@
+## 2.0.9
+* TOC bump for patch 7.3.0.
+* Fixed PlaySound issue.
+
 ## 2.0.8
 * Fixed bug caused by previous update.
 

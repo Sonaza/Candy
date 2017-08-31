@@ -18,16 +18,19 @@ Text callback function receives one parameter: text. It expects a new string (te
 
 Example:
 
-```lua
--- Returns reverse text  
+```-- Returns reverse text
 return string.reverse(text);
 ```
 
 Visibility callback function receives two parameters: text (with color information stripped) and icon. It expects a boolean or nil as return (true is visible).
 
-Example:
-```lua
--- Toggles visibility based on durability number displayed  
+Examples:
+
+```-- Toggles visibility based on if player has reached maximum level
+return UnitLevel("player") == GetMaxPlayerLevel();
+```
+
+```-- Toggles visibility based on durability number displayed
 local durability = tonumber(strmatch(text, "(%d+)")) or 0; return durability <= 50;
 ```
 

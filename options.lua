@@ -404,17 +404,12 @@ function addon:GetActiveBrokers()
 end
 
 function addon:ShowOptions()
-	PlaySound("igCharacterInfoOpen");
-	
-	-- /run ad=LibStub("AceConfigDialog-3.0");ad:SetDefaultSize("Candy", 580, 380);ad:Open("Candy");
 	AceDialog:SetDefaultSize("Candy", 570, 380);
 	AceDialog:Open("Candy");
 end
 
 function addon:CloseOptions()
 	AceDialog:Close("Candy");
-	PlaySound("igCharacterInfoClose");
-	
 	GameTooltip:Hide();
 end
 
