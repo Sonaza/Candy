@@ -1,3 +1,6 @@
+## 3.0.0
+* Updated for Battle for Azeroth.
+
 ## 2.0.9
 * TOC bump for patch 7.3.0.
 * Fixed PlaySound issue.

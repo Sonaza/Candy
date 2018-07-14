@@ -713,8 +713,6 @@ function addon:ConvertAnchor(frame, justify)
 		local point = newAnchor[justify][anchor.point];
 		local x, y = unpack(translated[point]);
 		
-		-- print(anchor.point, anchor.x, anchor.y, "    TO    ", point, nil, "BOTTOMLEFT", x, y);
-		
 		if(point) then
 			frame:ClearAllPoints();
 			frame:SetPoint(point, nil, "BOTTOMLEFT", x, y);
@@ -905,7 +903,6 @@ function CandyBarFrame_OnMouseUp(self, button)
 					local stickyPoint = FlyPaper.Stick(self, candyBar, 12 + offset, offset, offset);
 					if(stickyPoint) then
 						foundSnap = true;
-						-- print(self.broker, "sticky on", candyBar.broker, stickyPoint);
 						break;
 					end
 				end
