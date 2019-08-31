@@ -1,3 +1,6 @@
+## 3.0.1
+* Classic compability mods, same version should work for both retail and classic now.
+
 ## 3.0.0
 * Updated for Battle for Azeroth.
 

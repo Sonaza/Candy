@@ -1,8 +1,8 @@
-## Interface: 80000
+## Interface: 11302
 ## Title: Candy
 ## Notes: Candybar sized DataBroker docks
 ## Author: Sonaza
-## Version: 3.0.0
+## Version: 3.0.1
 ## SavedVariables: CandyDB
 
 libs\LibStub\LibStub.lua
