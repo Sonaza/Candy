@@ -18,6 +18,8 @@ local CANDY_DEFAULT_FONT = "DorisPP";
 
 local ICON_PATTERN = "|T%s:12:12:0:0|t ";
 
+local inClassicMode = C_PetBattles == nil;
+
 local frameStrata = {
 	"BACKGROUND",
 	"LOW",
@@ -54,8 +56,10 @@ function addon:OnInitialize()
 	addon:RegisterEvent("PLAYER_REGEN_DISABLED");
 	addon:RegisterEvent("PLAYER_REGEN_ENABLED");
 	
-	addon:RegisterEvent("PET_BATTLE_OPENING_START");
-	addon:RegisterEvent("PET_BATTLE_OVER");
+	if (not inClassicMode) then
+		addon:RegisterEvent("PET_BATTLE_OPENING_START");
+		addon:RegisterEvent("PET_BATTLE_OVER");
+	end
 	
 	addon:RegisterEvent("MODIFIER_STATE_CHANGED");
 end
@@ -185,8 +189,13 @@ end
 function addon:PlayerInInstance()
 	local name, instanceType = GetInstanceInfo();
 	
-	if(instanceType == "none" or C_Garrison.IsOnGarrisonMap()) then
+	if(instanceType == "none") then
 		return false;
+	end
+	if (not inClassicMode) then
+		if (C_Garrison.IsOnGarrisonMap()) then
+			return false;
+		end
 	end
 	
 	return true, instanceType;
@@ -262,8 +271,10 @@ function addon:UpdateVisibility(inCombat)
 				shouldShow = false;
 			end
 			
-			if(visibility.hideInPetBattle and C_PetBattles.IsInBattle()) then
-				shouldShow = false;
+			if (not inClassicMode) then
+				if(visibility.hideInPetBattle and C_PetBattles.IsInBattle()) then
+					shouldShow = false;
+				end
 			end
 			
 			if(shouldShow and visibility.instanceMode ~= E.INSTANCEMODE_EVERYWHERE) then
