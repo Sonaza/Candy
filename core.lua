@@ -98,7 +98,7 @@ function addon:OnEnable()
 					luaTextFilter = nil,
 					
 					fixedWidth = 0,
-					backgroundColor = { 1, 0.5, 0.25, 0.9 },
+					backgroundColor = { 0.0, 0.0, 0.0, 0.0 },
 					
 					visibility = {
 						mode 			= E.VISIBILITY_ALWAYS,
