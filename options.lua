@@ -19,7 +19,7 @@ function addon:AddMessage(msg, ...)
 end
 
 local ValidateVisibilityCallback = function(script, broker)
-	if(script and strtrim(script) == "") then
+	if (script and strtrim(script) == "") then
 		addon:AddMessage("Script is empty. Visibility callback will be cleared.");
 		return;
 	end
@@ -27,21 +27,21 @@ local ValidateVisibilityCallback = function(script, broker)
 	local script = string.format('return (function(text, icon) %s end)(...)', script or "return true;");
 	local compiled, scriptError = loadstring(script, "Candy-Visibility-" .. broker);
 	
-	if(not compiled) then
+	if (not compiled) then
 		addon:AddMessage("Error: %s", scriptError);
 	else
 		local _, module = addon:GetCandy(broker);
-		if(not module) then return end
+		if (not module) then return end
 		
 		local text = module.text or module.label or broker or "";
 		
 		local success, result = pcall(compiled, text, module.icon or "");
-		if(success) then
+		if (success) then
 			addon:AddMessage("No script syntax errors. Yay!");
 			
-			if(type(result) == "string") then
+			if (type(result) == "string") then
 				addon:AddMessage("Visibility callback returns a string but it may not be intentional. Did you mean to set text filter instead?");
-			elseif(type(result) ~= "boolean" and type(result) ~= "nil") then
+			elseif (type(result) ~= "boolean" and type(result) ~= "nil") then
 				addon:AddMessage("Visibility callback returns a %s but it may not be intentional. Please re-check the callback script.", type(result));
 			end
 		else
@@ -57,7 +57,7 @@ StaticPopupDialogs["CANDY_LUA_VISIBILITY_EDIT"] = {
 	button3 = CANCEL,
 	OnAccept = function(self, data)
 		data.options.visibility.customLua = strtrim(self.editBox:GetText());
-		if(data.options.visibility.customLua and data.options.visibility.customLua ~= "") then
+		if (data.options.visibility.customLua and data.options.visibility.customLua ~= "") then
 			ValidateVisibilityCallback(data.options.visibility.customLua, data.broker);
 		else
 			addon:AddMessage("Cleared custom visibility condition.");
@@ -97,7 +97,7 @@ StaticPopupDialogs["CANDY_LUA_VISIBILITY_EDIT"] = {
 };
 
 local ValidateTextFilter = function(script, broker)
-	if(script and strtrim(script) == "") then
+	if (script and strtrim(script) == "") then
 		addon:AddMessage("Script is empty. Text filter will be cleared.");
 		return;
 	end
@@ -105,21 +105,21 @@ local ValidateTextFilter = function(script, broker)
 	local script = string.format('return (function(text) %s end)(...)', script or "return text;");
 	local compiled, scriptError = loadstring(script, "Candy-TextFilter-" .. broker);
 	
-	if(not compiled) then
+	if (not compiled) then
 		addon:AddMessage("Error: %s", scriptError);
 	else
 		local _, module = addon:GetCandy(broker);
-		if(not module) then return end
+		if (not module) then return end
 		
 		local text = module.text or module.label or broker or "";
 		
 		local success, result = pcall(compiled, text);
-		if(success) then
+		if (success) then
 			addon:AddMessage("No script syntax errors. Yay!");
 			
-			if(type(result) == "boolean") then
+			if (type(result) == "boolean") then
 				addon:AddMessage("Text filter returns a boolean but it may not be intentional. Did you mean to set visibility condition instead?");
-			elseif(type(result) ~= "string" and type(result) ~= "number") then
+			elseif (type(result) ~= "string" and type(result) ~= "number") then
 				addon:AddMessage("Text filter returns a %s but it may not be intentional. Please re-check the callback script.", type(result));
 			end
 		
@@ -137,7 +137,7 @@ StaticPopupDialogs["CANDY_LUA_TEXT_EDIT"] = {
 	button3 = CANCEL,
 	OnAccept = function(self, data)
 		data.options.luaTextFilter = strtrim(self.editBox:GetText());
-		if(data.options.luaTextFilter and data.options.luaTextFilter ~= "") then
+		if (data.options.luaTextFilter and data.options.luaTextFilter ~= "") then
 			ValidateTextFilter(data.options.luaTextFilter, data.broker);
 		else
 			addon:AddMessage("Cleared custom text filter.");
@@ -172,6 +172,51 @@ StaticPopupDialogs["CANDY_LUA_TEXT_EDIT"] = {
 		addon:MarkForRecompile(data.broker);
 	end,
 	
+	hasEditBox = 1,
+	whileDead = 1,
+	timeout = 0,
+};
+
+StaticPopupDialogs["CANDY_SET_FIXED_WIDTH"] = {
+	text = "Edit width for \"%s\":",
+	button1 = SAVE,
+	button3 = CANCEL,
+	OnAccept = function(self, data)
+		local widthValue = tonumber(self.editBox:GetText()) or 0;
+		data.options.fixedWidth = widthValue;
+		
+		if (widthValue == 0) then
+			print("Using invalid or zero width reverts back to dynamic width.");
+		end
+		
+		addon:UpdateCandyBars();
+		addon:UpdateCandyText(data.broker);
+	end,
+	EditBoxOnEnterPressed = function(self, data)
+		local parent = self:GetParent();
+		
+		local widthValue = tonumber(parent.editBox:GetText()) or 0;
+		data.options.fixedWidth = widthValue;
+		
+		if (widthValue == 0) then
+			print("Using invalid or zero width reverts back to dynamic width.");
+		end
+		
+		addon:UpdateCandyBars();
+		addon:UpdateCandyText(data.broker);
+		
+		parent:Hide();
+	end,
+	OnCancel = function(self, data)
+		return true;
+	end,
+	OnShow = function(self, data)
+		self.editBox:SetText(data.options.fixedWidth or "0");
+	end,
+	OnHide = function(self, data)
+		ChatEdit_FocusActiveWindow();
+		self.editBox:SetText("");
+	end,
 	hasEditBox = 1,
 	whileDead = 1,
 	timeout = 0,
@@ -242,7 +287,7 @@ local options = {
 					desc = "Creates a Candy bar for the selected DataBroker module.",
 					width = "half",
 					func = function()
-						if(selectedBroker) then
+						if (selectedBroker) then
 							addon:AddCandy(selectedBroker);
 							selectedBroker = nil;
 						end
@@ -268,7 +313,7 @@ local options = {
 					desc = "Removes a Candy bar for the selected DataBroker module.",
 					width = "half",
 					func = function()
-						if(selectedBroker) then
+						if (selectedBroker) then
 							addon:RemoveCandy(selectedBroker);
 							selectedBroker = nil;
 						end
@@ -357,7 +402,7 @@ local options = {
 					end,
 					get = function(self)
 						for k, v in ipairs(addon.frameStrata) do
-							if(addon.db.global.frameStrata == v) then return k end;
+							if (addon.db.global.frameStrata == v) then return k end;
 						end
 						
 						return 0;
@@ -372,6 +417,24 @@ local options = {
 						StaticPopup_Show("CANDY_RESET_ANCHORS");
 					end,
 				},
+				background_color = {
+					type = "color",
+					order = 50,
+					name = "Background Color",
+					desc = "Set a global background color for all the current and new bars.|n|nChanging the value overrides all current colors but the color can be set per bar basis after.",
+					set = function(self, r, g, b, a)
+						if (addon.db.global.locked) then
+							addon:UnlockBars();
+							addon:ToggleConfigBackground(false);
+						end
+						addon:SetGlobalBackgroundColor(r, g, b, a);
+					end,
+					get = function(self)
+						local r, g, b, a = unpack(addon.db.global.backgroundColor);
+						return r, g, b, a;
+					end,
+					hasAlpha = true,
+				},
 			},
 		},
 	},
@@ -384,7 +447,7 @@ function addon:GetAddableBrokers()
 	local brokers = {};
 	
 	for broker, data in LibDataBroker:DataObjectIterator() do
-		if(not addon.ActiveBars[broker]) then
+		if (not addon.ActiveBars[broker]) then
 			brokers[broker] = string.format("%s%s", data.icon and ICON_PATTERN:format(data.icon) or "", broker);
 		end
 	end
@@ -441,8 +504,36 @@ function addon:SetGlobalFrameStrata(newFrameStrata)
 	self.db.global.frameStrata = newFrameStrata;
 end
 
+function addon:ColorPicker_OnShow()
+	if (not self.db.global.locked) then
+		addon:ToggleConfigBackground(false);
+	end
+end
+
+function addon:ColorPicker_OnHide()
+	if (not self.db.global.locked) then
+		addon:ToggleConfigBackground(true);
+	end
+end
+
+function addon:SetGlobalBackgroundColor(r, g, b, a)
+	addon.db.global.backgroundColor = { r, g, b, a };
+	
+	for broker, candyBar in pairs(addon.ActiveBars) do
+		candyBar.data.backgroundColor = { r, g, b, a };
+		candyBar.background:SetVertexColor(r, g, b, a);
+	end
+end
+
+function addon:SetBarBackgroundColor(candyBar, r, g, b, a)
+	if (candyBar) then
+		candyBar.data.backgroundColor = { r, g, b, a };
+		candyBar.background:SetVertexColor(r, g, b, a);
+	end
+end
+
 function addon:OpenCandyOptions(frame, broker)
-	if(not addon.ContextMenu) then
+	if (not addon.ContextMenu) then
 		addon.ContextMenu = CreateFrame("Frame", "CandyMenuFrame", UIParent, "UIDropDownMenuTemplate");
 	end
 	
@@ -465,6 +556,11 @@ function addon:OpenCandyOptions(frame, broker)
 		});
 	end
 	
+	local fixedWidthLabel = "|cffffd100Use fixed width|r";
+	if (candyBar.data.fixedWidth > 0) then
+		fixedWidthLabel = string.format("|cffffd100Use fixed width|r (currently %d pixels)", candyBar.data.fixedWidth);
+	end
+	
 	local contextMenuData = {
 		{
 			text = string.format("Candy Options: |cffffffff%s|r", broker), isTitle = true, notCheckable = true,
@@ -485,7 +581,7 @@ function addon:OpenCandyOptions(frame, broker)
 			text = "Show icon",
 			func = function()
 				candyBar.data.showIcon = not candyBar.data.showIcon;
-				if(not candyBar.data.showText) then
+				if (not candyBar.data.showText) then
 					candyBar.data.showText = true;
 					addon:AddMessage("Toggling text back on for '%s' candy bar.", candyBar.broker);
 				end
@@ -498,7 +594,7 @@ function addon:OpenCandyOptions(frame, broker)
 			text = "Show text",
 			func = function()
 				candyBar.data.showText = not candyBar.data.showText;
-				if(not candyBar.data.showIcon) then
+				if (not candyBar.data.showIcon) then
 					candyBar.data.showIcon = true;
 					addon:AddMessage("Toggling icon back on for '%s' candy bar.", candyBar.broker);
 				end
@@ -526,6 +622,64 @@ function addon:OpenCandyOptions(frame, broker)
 			end,
 			checked = function() return candyBar.data.luaTextFilter ~= nil; end,
 			isNotRadio = true,
+		},
+		{
+			text = " ", isTitle = true, notCheckable = true,
+		},
+		{
+			text = "|cffffd100Width options|r",
+			notCheckable = true,
+			hasArrow = true,
+			menuList = {
+				{
+					text = "Width options", isTitle = true, notCheckable = true,
+				},
+				{
+					text = "|cffffd100Dynamic width|r (fit to text)",
+					func = function()
+						candyBar.data.fixedWidth = 0;
+						addon:UpdateCandyText(candyBar.broker);
+						CloseMenus();
+					end,
+					checked = function() return candyBar.data.fixedWidth == 0; end,
+				},
+				{
+					text = fixedWidthLabel,
+					func = function()
+						StaticPopup_Show("CANDY_SET_FIXED_WIDTH", candyBar.broker, nil, {
+							broker = candyBar.broker,
+							options = candyBar.data,
+						});
+						CloseMenus();
+					end,
+					checked = function() return candyBar.data.fixedWidth > 0; end,
+				},
+			},
+		},
+		{
+			text = "Background color",
+			extraInfo = "very",
+			func = UIDropDownMenuButton_OpenColorPicker,
+			hasColorSwatch = true,
+			hasOpacity = true,
+			swatchFunc = function()
+				local r, g, b = ColorPickerFrame:GetColorRGB();
+				local a = 1 - OpacitySliderFrame:GetValue();
+				addon:SetBarBackgroundColor(candyBar, r, g, b, a);
+			end,
+			opacityFunc = function()
+				local r, g, b = ColorPickerFrame:GetColorRGB();
+				local a = 1 - OpacitySliderFrame:GetValue();
+				addon:SetBarBackgroundColor(candyBar, r, g, b, a);
+			end,
+			cancelFunc = function(pv)
+				addon:SetBarBackgroundColor(candyBar, pv.r, pv.g, pv.b, pv.opacity);
+			end,
+			r = candyBar.data.backgroundColor[1] or 0,
+			g = candyBar.data.backgroundColor[2] or 0,
+			b = candyBar.data.backgroundColor[3] or 0,
+			opacity = 1 - (candyBar.data.backgroundColor[4] or 0),
+			notCheckable = true,
 		},
 		{
 			text = " ", isTitle = true, notCheckable = true,

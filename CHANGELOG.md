@@ -1,3 +1,8 @@
+## 3.0.2
+* Patch 8.2.5 (but should work in classic too).
+* Added an option to set a fixed width for a bar.
+* Added an option to change background colors per bar and globally.
+
 ## 3.0.1
 * TOC bump for patch 8.2.0.
 * Classic compability mods, same version should work for both retail and classic now.

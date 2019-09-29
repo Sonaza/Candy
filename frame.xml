@@ -36,6 +36,9 @@
 				<Texture name="$parentBackground" parentKey="background" setAllPoints="true">
 					<Color r="1" g="1" b="1" a="1"/>
 				</Texture>
+				<Texture name="$parentConfigBackground" parentKey="configBackground" setAllPoints="true">
+					<Color r="1" g="1" b="1" a="1"/>
+				</Texture>
 			</Layer>
 			<Layer level="ARTWORK">
 				<FontString name="$parentText" parentKey="text" inherits="CandyFont" justifyH="LEFT">
