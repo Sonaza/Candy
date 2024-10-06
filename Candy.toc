@@ -1,8 +1,9 @@
-## Interface: 80205
+## Interface: 110200
 ## Title: Candy
+## IconTexture: Interface\Icons\achievement_halloween_candy_01
 ## Notes: Candybar sized DataBroker docks
 ## Author: Sonaza
-## Version: 3.0.2
+## Version: 3.1.0
 ## SavedVariables: CandyDB
 
 libs\LibStub\LibStub.lua

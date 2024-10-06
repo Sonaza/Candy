@@ -23,22 +23,22 @@ local ValidateVisibilityCallback = function(script, broker)
 		addon:AddMessage("Script is empty. Visibility callback will be cleared.");
 		return;
 	end
-	
-	local script = string.format('return (function(text, icon) %s end)(...)', script or "return true;");
+
+	local script = string.format("return (function(text, icon) %s end)(...)", script or "return true;");
 	local compiled, scriptError = loadstring(script, "Candy-Visibility-" .. broker);
-	
+
 	if (not compiled) then
 		addon:AddMessage("Error: %s", scriptError);
 	else
 		local _, module = addon:GetCandy(broker);
 		if (not module) then return end
-		
+
 		local text = module.text or module.label or broker or "";
-		
+
 		local success, result = pcall(compiled, text, module.icon or "");
 		if (success) then
 			addon:AddMessage("No script syntax errors. Yay!");
-			
+
 			if (type(result) == "string") then
 				addon:AddMessage("Visibility callback returns a string but it may not be intentional. Did you mean to set text filter instead?");
 			elseif (type(result) ~= "boolean" and type(result) ~= "nil") then
@@ -63,17 +63,17 @@ StaticPopupDialogs["CANDY_LUA_VISIBILITY_EDIT"] = {
 			addon:AddMessage("Cleared custom visibility condition.");
 			data.options.visibility.customLua = nil;
 		end
-		
+
 		addon:MarkForRecompile(data.broker);
-		
+
 		self.editBox:SetText("");
 	end,
 	OnCancel = function(self, data)
 		local script = strtrim(self.editBox:GetText());
 		ValidateVisibilityCallback(script, data.broker);
-		
+
 		addon:MarkForRecompile(data.broker);
-		
+
 		return true;
 	end,
 	OnShow = function(self, data)
@@ -87,10 +87,10 @@ StaticPopupDialogs["CANDY_LUA_VISIBILITY_EDIT"] = {
 		ChatEdit_FocusActiveWindow();
 		self.editBox:SetText("");
 		self.defaultWidth = nil;
-		
+
 		addon:MarkForRecompile(data.broker);
 	end,
-	
+
 	hasEditBox = 1,
 	whileDead = 1,
 	timeout = 0,
@@ -101,28 +101,28 @@ local ValidateTextFilter = function(script, broker)
 		addon:AddMessage("Script is empty. Text filter will be cleared.");
 		return;
 	end
-	
-	local script = string.format('return (function(text) %s end)(...)', script or "return text;");
+
+	local script = string.format("return (function(text) %s end)(...)", script or "return text;");
 	local compiled, scriptError = loadstring(script, "Candy-TextFilter-" .. broker);
-	
+
 	if (not compiled) then
 		addon:AddMessage("Error: %s", scriptError);
 	else
 		local _, module = addon:GetCandy(broker);
 		if (not module) then return end
-		
+
 		local text = module.text or module.label or broker or "";
-		
+
 		local success, result = pcall(compiled, text);
 		if (success) then
 			addon:AddMessage("No script syntax errors. Yay!");
-			
+
 			if (type(result) == "boolean") then
 				addon:AddMessage("Text filter returns a boolean but it may not be intentional. Did you mean to set visibility condition instead?");
 			elseif (type(result) ~= "string" and type(result) ~= "number") then
 				addon:AddMessage("Text filter returns a %s but it may not be intentional. Please re-check the callback script.", type(result));
 			end
-		
+
 			addon:AddMessage("Resulting output: %s", tostring(result));
 		else
 			addon:AddMessage("Error: %s", result);
@@ -143,18 +143,18 @@ StaticPopupDialogs["CANDY_LUA_TEXT_EDIT"] = {
 			addon:AddMessage("Cleared custom text filter.");
 			data.options.luaTextFilter = nil;
 		end
-		
+
 		addon:MarkForRecompile(data.broker);
-		
+
 		self.editBox:SetText("");
 		addon:UpdateCandyBars();
 	end,
 	OnCancel = function(self, data)
 		local script = strtrim(self.editBox:GetText());
 		ValidateTextFilter(script, data.broker);
-		
+
 		addon:MarkForRecompile(data.broker);
-		
+
 		return true;
 	end,
 	OnShow = function(self, data)
@@ -168,10 +168,10 @@ StaticPopupDialogs["CANDY_LUA_TEXT_EDIT"] = {
 		ChatEdit_FocusActiveWindow();
 		self.editBox:SetText("");
 		self.defaultWidth = nil;
-		
+
 		addon:MarkForRecompile(data.broker);
 	end,
-	
+
 	hasEditBox = 1,
 	whileDead = 1,
 	timeout = 0,
@@ -184,27 +184,27 @@ StaticPopupDialogs["CANDY_SET_FIXED_WIDTH"] = {
 	OnAccept = function(self, data)
 		local widthValue = tonumber(self.editBox:GetText()) or 0;
 		data.options.fixedWidth = widthValue;
-		
+
 		if (widthValue == 0) then
 			print("Using invalid or zero width reverts back to dynamic width.");
 		end
-		
+
 		addon:UpdateCandyBars();
 		addon:UpdateCandyText(data.broker);
 	end,
 	EditBoxOnEnterPressed = function(self, data)
 		local parent = self:GetParent();
-		
+
 		local widthValue = tonumber(parent.editBox:GetText()) or 0;
 		data.options.fixedWidth = widthValue;
-		
+
 		if (widthValue == 0) then
 			print("Using invalid or zero width reverts back to dynamic width.");
 		end
-		
+
 		addon:UpdateCandyBars();
 		addon:UpdateCandyText(data.broker);
-		
+
 		parent:Hide();
 	end,
 	OnCancel = function(self, data)
@@ -260,7 +260,7 @@ local options = {
 				addon:LockBars();
 			end,
 		},
-		
+
 		candybars_group = {
 			type = "group",
 			name = "Candy Bars",
@@ -293,7 +293,7 @@ local options = {
 						end
 					end,
 				},
-				
+
 				remove_candy_select = {
 					type = "select",
 					order = 40,
@@ -321,7 +321,7 @@ local options = {
 				},
 			},
 		},
-		
+
 		font_options_group = {
 			type = "group",
 			name = "Font Options",
@@ -330,20 +330,20 @@ local options = {
 			order = 30,
 			args = {
 				font_face = {
-	                name = "Set Font Face",
-	                desc = "Set the text font face for all Candy bars.",
-	                type = "select",
-					dialogControl = 'LSM30_Font',
+					name = "Set Font Face",
+					desc = "Set the text font face for all Candy bars.",
+					type = "select",
+					dialogControl = "LSM30_Font",
 					values = AceGUIWidgetLSMlists.font,
-	                order = 10,
-	                set = function(self, key)
-	                	addon.db.global.fontFace = key;
-	                	addon:UpdateCandyBars();
-	                end,
-	                get = function()
-	                	return addon.db.global.fontFace;
-	                end,
-	            },
+					order = 10,
+					set = function(self, key)
+						addon.db.global.fontFace = key;
+						addon:UpdateCandyBars();
+					end,
+					get = function()
+						return addon.db.global.fontFace;
+					end,
+				},
 				font_size = {
 					type = "select",
 					order = 20,
@@ -368,9 +368,9 @@ local options = {
 					style = "dropdown",
 					values = function()
 						return {
-							[""]				= "None",
-							["OUTLINE"]			= "Thin Outline",
-							["THICKOUTLINE"]	= "Thick Outline",
+							[""]             = "None",
+							["OUTLINE"]      = "Thin Outline",
+							["THICKOUTLINE"] = "Thick Outline",
 						};
 					end,
 					set = function(self, value)
@@ -382,7 +382,7 @@ local options = {
 				},
 			},
 		},
-				
+
 		frame_options_group = {
 			type = "group",
 			name = "Frame Options",
@@ -404,7 +404,7 @@ local options = {
 						for k, v in ipairs(addon.frameStrata) do
 							if (addon.db.global.frameStrata == v) then return k end;
 						end
-						
+
 						return 0;
 					end,
 				},
@@ -445,24 +445,24 @@ LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Candy", "Candy", nil);
 
 function addon:GetAddableBrokers()
 	local brokers = {};
-	
+
 	for broker, data in LibDataBroker:DataObjectIterator() do
 		if (not addon.ActiveBars[broker]) then
 			brokers[broker] = string.format("%s%s", data.icon and ICON_PATTERN:format(data.icon) or "", broker);
 		end
 	end
-	
+
 	return brokers;
 end
 
 function addon:GetActiveBrokers()
 	local brokers = {};
-	
+
 	for broker, candyBar in pairs(addon.ActiveBars) do
 		local _, data = addon:GetCandy(broker);
 		brokers[broker] = string.format("%s%s", data.icon and ICON_PATTERN:format(data.icon) or "", broker);
 	end
-	
+
 	return brokers;
 end
 
@@ -481,7 +481,7 @@ function addon:SetGlobalFontSize(newSize)
 		candyBar.data.fontSize = newSize;
 		addon:UpdateCandyText(broker);
 	end
-	
+
 	self.db.global.fontSize = newSize;
 end
 
@@ -490,7 +490,7 @@ function addon:SetGlobalFontOutline(newOutline)
 		candyBar.data.fontOutline = newOutline;
 		addon:UpdateCandyText(broker);
 	end
-	
+
 	self.db.global.fontOutline = newOutline;
 end
 
@@ -498,9 +498,9 @@ function addon:SetGlobalFrameStrata(newFrameStrata)
 	for broker, candyBar in pairs(addon.ActiveBars) do
 		candyBar.data.frameStrata = newFrameStrata;
 	end
-	
+
 	addon:UpdateCandyBars();
-	
+
 	self.db.global.frameStrata = newFrameStrata;
 end
 
@@ -518,7 +518,7 @@ end
 
 function addon:SetGlobalBackgroundColor(r, g, b, a)
 	addon.db.global.backgroundColor = { r, g, b, a };
-	
+
 	for broker, candyBar in pairs(addon.ActiveBars) do
 		candyBar.data.backgroundColor = { r, g, b, a };
 		candyBar.background:SetVertexColor(r, g, b, a);
@@ -533,143 +533,123 @@ function addon:SetBarBackgroundColor(candyBar, r, g, b, a)
 end
 
 function addon:OpenCandyOptions(frame, broker)
-	if (not addon.ContextMenu) then
-		addon.ContextMenu = CreateFrame("Frame", "CandyMenuFrame", UIParent, "UIDropDownMenuTemplate");
-	end
-	
 	CloseMenus();
-	
-	local point, relative = addon:GetAnchors(frame, false);
+
 	local candyBar, module = addon:GetCandy(broker);
-	
-	local frameStrataMenu = {
-		{
-			text = "Frame Strata", isTitle = true, notCheckable = true,
-		},
-	};
-	
-	for _, frameStrata in ipairs(addon.frameStrata) do
-		tinsert(frameStrataMenu, {
-			text = frameStrata,
-			func = function() candyBar.data.frameStrata = frameStrata; candyBar:SetFrameStrata(frameStrata); CloseMenus(); end,
-			checked = function() return candyBar.data.frameStrata == frameStrata; end,
-		});
-	end
-	
-	local fixedWidthLabel = "|cffffd100Use fixed width|r";
-	if (candyBar.data.fixedWidth > 0) then
-		fixedWidthLabel = string.format("|cffffd100Use fixed width|r (currently %d pixels)", candyBar.data.fixedWidth);
-	end
-	
-	local contextMenuData = {
-		{
-			text = string.format("Candy Options: |cffffffff%s|r", broker), isTitle = true, notCheckable = true,
-		},
-		{
-			text = "Show tooltip on hover",
-			func = function() candyBar.data.showTooltip = not candyBar.data.showTooltip; end,
-			checked = function() return candyBar.data.showTooltip; end,
-			isNotRadio = true,
-		},
-		{
-			text = "Make click-through",
-			func = function() candyBar.data.isClickthrough = not candyBar.data.isClickthrough; end,
-			checked = function() return candyBar.data.isClickthrough; end,
-			isNotRadio = true,
-		},
-		{
-			text = "Show icon",
-			func = function()
+
+	MenuUtil.CreateContextMenu(frame, function(ownerRegion, rootDescription)
+		rootDescription:CreateTitle(string.format("Candy Options: |cffffffff%s|r", broker));
+
+		-- Show tooltip on hover
+		rootDescription:CreateCheckbox(
+			"Show tooltip on hover",
+			function() return candyBar.data.showTooltip; end,
+			function() candyBar.data.showTooltip = not candyBar.data.showTooltip; end
+		);
+
+		-- Make click-through
+		rootDescription:CreateCheckbox(
+			"Make click-through",
+			function() return candyBar.data.isClickthrough; end,
+			function() candyBar.data.isClickthrough = not candyBar.data.isClickthrough; end
+		);
+
+		-- Show icon
+		rootDescription:CreateCheckbox(
+			"Show icon",
+			function() return candyBar.data.showIcon; end,
+			function()
 				candyBar.data.showIcon = not candyBar.data.showIcon;
 				if (not candyBar.data.showText) then
 					candyBar.data.showText = true;
 					addon:AddMessage("Toggling text back on for '%s' candy bar.", candyBar.broker);
 				end
 				addon:UpdateCandyText(candyBar.broker);
-			end,
-			checked = function() return candyBar.data.showIcon; end,
-			isNotRadio = true,
-		},
-		{
-			text = "Show text",
-			func = function()
+			end
+		);
+
+		-- Show text
+		rootDescription:CreateCheckbox(
+			"Show text",
+			function() return candyBar.data.showText; end,
+			function()
 				candyBar.data.showText = not candyBar.data.showText;
 				if (not candyBar.data.showIcon) then
 					candyBar.data.showIcon = true;
 					addon:AddMessage("Toggling icon back on for '%s' candy bar.", candyBar.broker);
 				end
 				addon:UpdateCandyText(candyBar.broker);
-			end,
-			checked = function() return candyBar.data.showText; end,
-			isNotRadio = true,
-		},
-		{
-			text = "Force white text color",
-			func = function() candyBar.data.stripColor = not candyBar.data.stripColor; addon:UpdateCandyText(candyBar.broker); end,
-			checked = function() return candyBar.data.stripColor; end,
-			isNotRadio = true,
-		},
-		{
-			text = " ", isTitle = true, notCheckable = true,
-		},
-		{
-			text = "Lua text filter",
-			func = function()
+			end
+		);
+
+		-- Force white text color
+		rootDescription:CreateCheckbox(
+			"Force white text color",
+			function() return candyBar.data.stripColor; end,
+			function()
+				candyBar.data.stripColor = not candyBar.data.stripColor; addon:UpdateCandyText(candyBar.broker);
+			end
+		);
+
+		rootDescription:CreateSpacer();
+
+		-- Lua text filter
+		rootDescription:CreateCheckbox(
+			"Lua text filter",
+			function() return candyBar.data.luaTextFilter ~= nil; end,
+			function()
 				StaticPopup_Show("CANDY_LUA_TEXT_EDIT", candyBar.broker, nil, {
 					broker = candyBar.broker,
 					options = candyBar.data,
 				});
-			end,
-			checked = function() return candyBar.data.luaTextFilter ~= nil; end,
-			isNotRadio = true,
-		},
-		{
-			text = " ", isTitle = true, notCheckable = true,
-		},
-		{
-			text = "|cffffd100Width options|r",
-			notCheckable = true,
-			hasArrow = true,
-			menuList = {
-				{
-					text = "Width options", isTitle = true, notCheckable = true,
-				},
-				{
-					text = "|cffffd100Dynamic width|r (fit to text)",
-					func = function()
-						candyBar.data.fixedWidth = 0;
-						addon:UpdateCandyText(candyBar.broker);
-						CloseMenus();
-					end,
-					checked = function() return candyBar.data.fixedWidth == 0; end,
-				},
-				{
-					text = fixedWidthLabel,
-					func = function()
-						StaticPopup_Show("CANDY_SET_FIXED_WIDTH", candyBar.broker, nil, {
-							broker = candyBar.broker,
-							options = candyBar.data,
-						});
-						CloseMenus();
-					end,
-					checked = function() return candyBar.data.fixedWidth > 0; end,
-				},
-			},
-		},
-		{
-			text = "Background color",
-			extraInfo = "very",
-			func = UIDropDownMenuButton_OpenColorPicker,
-			hasColorSwatch = true,
+			end
+		);
+
+		rootDescription:CreateSpacer();
+
+		-- Width options
+		local widthOptionsMenu = rootDescription:CreateButton("|cffffd100Width options|r");
+		widthOptionsMenu:CreateTitle("Width options");
+
+		-- Dynamic width
+		widthOptionsMenu:CreateRadio(
+			"|cffffd100Dynamic width|r (fit to text)",
+			function() return candyBar.data.fixedWidth == 0; end,
+			function()
+				candyBar.data.fixedWidth = 0;
+				addon:UpdateCandyText(candyBar.broker);
+				CloseMenus();
+			end
+		);
+
+		-- Use fixed width
+		local fixedWidthLabel = "|cffffd100Use fixed width|r";
+		if (candyBar.data.fixedWidth > 0) then
+			fixedWidthLabel = string.format("|cffffd100Use fixed width|r (currently %d pixels)", candyBar.data.fixedWidth);
+		end
+		widthOptionsMenu:CreateRadio(
+			fixedWidthLabel,
+			function() return candyBar.data.fixedWidth > 0; end,
+			function()
+				StaticPopup_Show("CANDY_SET_FIXED_WIDTH", candyBar.broker, nil, {
+					broker = candyBar.broker,
+					options = candyBar.data,
+				});
+				CloseMenus();
+			end
+		);
+
+		-- Background color
+		local colorInfo = {
 			hasOpacity = true,
 			swatchFunc = function()
 				local r, g, b = ColorPickerFrame:GetColorRGB();
-				local a = 1 - OpacitySliderFrame:GetValue();
+				local a = ColorPickerFrame:GetColorAlpha();
 				addon:SetBarBackgroundColor(candyBar, r, g, b, a);
 			end,
 			opacityFunc = function()
 				local r, g, b = ColorPickerFrame:GetColorRGB();
-				local a = 1 - OpacitySliderFrame:GetValue();
+				local a = ColorPickerFrame:GetColorAlpha();
 				addon:SetBarBackgroundColor(candyBar, r, g, b, a);
 			end,
 			cancelFunc = function(pv)
@@ -679,221 +659,219 @@ function addon:OpenCandyOptions(frame, broker)
 			g = candyBar.data.backgroundColor[2] or 0,
 			b = candyBar.data.backgroundColor[3] or 0,
 			opacity = 1 - (candyBar.data.backgroundColor[4] or 0),
-			notCheckable = true,
-		},
-		{
-			text = " ", isTitle = true, notCheckable = true,
-		},
-		{
-			text = "|cffffd100Visiblity Options|r",
-			notCheckable = true,
-			hasArrow = true,
-			menuList = {
-				{
-					text = "Combat Status", isTitle = true, notCheckable = true,
-				},
-				{
-					text = "Show in and out of combat",
-					func = function() candyBar.data.visibility.mode = E.VISIBILITY_ALWAYS; end,
-					checked = function() return candyBar.data.visibility.mode == E.VISIBILITY_ALWAYS; end,
-				},
-				{
-					text = "Show only in combat",
-					func = function() candyBar.data.visibility.mode = E.VISIBILITY_IN_COMBAT; end,
-					checked = function() return candyBar.data.visibility.mode == E.VISIBILITY_IN_COMBAT; end,
-				},
-				{
-					text = "Show only out of combat",
-					func = function() candyBar.data.visibility.mode = E.VISIBILITY_OUT_OF_COMBAT; end,
-					checked = function() return candyBar.data.visibility.mode == E.VISIBILITY_OUT_OF_COMBAT; end,
-				},
-				{
-					text = " ", isTitle = true, notCheckable = true,
-				},
-				{
-					text = "Instance Status", isTitle = true, notCheckable = true,
-				},
-				{
-					text = "Show everywhere",
-					func = function() candyBar.data.visibility.instanceMode = E.INSTANCEMODE_EVERYWHERE; end,
-					checked = function() return candyBar.data.visibility.instanceMode == E.INSTANCEMODE_EVERYWHERE; end,
-				},
-				{
-					text = "Show only while in instances",
-					func = function() candyBar.data.visibility.instanceMode = E.INSTANCEMODE_INSIDE; end,
-					checked = function() return candyBar.data.visibility.instanceMode == E.INSTANCEMODE_INSIDE; end,
-				},
-				{
-					text = "Do not show while in instances",
-					func = function() candyBar.data.visibility.instanceMode = E.INSTANCEMODE_OUTSIDE; end,
-					checked = function() return candyBar.data.visibility.instanceMode == E.INSTANCEMODE_OUTSIDE; end,
-				},
-				{
-					text = " ", isTitle = true, notCheckable = true,
-				},
-				{
-					text = "Group Status", isTitle = true, notCheckable = true,
-				},
-				{
-					text = "Show always",
-					func = function() candyBar.data.visibility.groupMode = E.GROUPMODE_ALWAYS; end,
-					checked = function() return candyBar.data.visibility.groupMode == E.GROUPMODE_ALWAYS; end,
-				},
-				{
-					text = "Only when solo",
-					func = function() candyBar.data.visibility.groupMode = E.GROUPMODE_SOLO; end,
-					checked = function() return candyBar.data.visibility.groupMode == E.GROUPMODE_SOLO; end,
-				},
-				{
-					text = "Only when in party or raid",
-					func = function() candyBar.data.visibility.groupMode = E.GROUPMODE_INPARTY; end,
-					checked = function() return candyBar.data.visibility.groupMode == E.GROUPMODE_INPARTY; end,
-				},
-				{
-					text = " ", isTitle = true, notCheckable = true,
-				},
-				{
-					text = "Show only when holding", isTitle = true, notCheckable = true,
-				},
-				{
-					text = "CTRL",
-					func = function() candyBar.data.visibility.showCtrl = not candyBar.data.visibility.showCtrl; end,
-					checked = function() return candyBar.data.visibility.showCtrl; end,
-					isNotRadio = true,
-				},
-				{
-					text = "SHIFT",
-					func = function() candyBar.data.visibility.showShift = not candyBar.data.visibility.showShift; end,
-					checked = function() return candyBar.data.visibility.showShift; end,
-					isNotRadio = true,
-				},
-				{
-					text = "ALT",
-					func = function() candyBar.data.visibility.showAlt = not candyBar.data.visibility.showAlt; end,
-					checked = function() return candyBar.data.visibility.showAlt; end,
-					isNotRadio = true,
-				},
-				{
-					text = " ", isTitle = true, notCheckable = true,
-				},
-				{
-					text = "Miscellaneous", isTitle = true, notCheckable = true,
-				},
-				{
-					text = "Hide when pet battling",
-					func = function() candyBar.data.visibility.hideInPetBattle = not candyBar.data.visibility.hideInPetBattle; end,
-					checked = function() return candyBar.data.visibility.hideInPetBattle; end,
-					isNotRadio = true,
-				},
-				{
-					text = "Custom Lua condition",
-					func = function()
-						StaticPopup_Show("CANDY_LUA_VISIBILITY_EDIT", candyBar.broker, nil, {
-							broker = candyBar.broker,
-							options = candyBar.data,
-						});
-					end,
-					checked = function() return candyBar.data.visibility.customLua ~= nil; end,
-					isNotRadio = true,
-				},
-			},
-		},
-		{
-			text = " ", isTitle = true, notCheckable = true,
-		},
-		{
-			text = string.format("|cffffd100Font Size:|r %d", candyBar.data.fontSize),
-			notCheckable = true,
-			hasArrow = true,
-			menuList = (function()
-				local fontSizeMenu = {
-					{
-						text = "Font Size", isTitle = true, notCheckable = true,
-					},
-				};
-				
-				for size = 8, 16 do
-					tinsert(fontSizeMenu, {
-						text = tostring(size),
-						func = function() candyBar.data.fontSize = size; addon:UpdateCandyText(broker); CloseMenus(); end,
-						checked = function() return candyBar.data.fontSize == size; end,
-					});
+		};
+		rootDescription:CreateColorSwatch(
+			"Background color",
+			function() ColorPickerFrame:SetupColorPickerAndShow(colorInfo); end,
+			colorInfo
+		);
+
+		rootDescription:CreateSpacer();
+
+		-- Visibility options
+		local visibilityOptionsMenu = rootDescription:CreateButton("|cffffd100Visiblity Options|r");
+
+		-- Combat Status
+		visibilityOptionsMenu:CreateTitle("Combat Status");
+		-- Show in and out of combat
+		visibilityOptionsMenu:CreateRadio(
+			"Show in and out of combat",
+			function() return candyBar.data.visibility.mode == E.VISIBILITY_ALWAYS; end,
+			function() candyBar.data.visibility.mode = E.VISIBILITY_ALWAYS; end
+		);
+		-- Show only in combat
+		visibilityOptionsMenu:CreateRadio(
+			"Show only in combat",
+			function() return candyBar.data.visibility.mode == E.VISIBILITY_IN_COMBAT; end,
+			function() candyBar.data.visibility.mode = E.VISIBILITY_IN_COMBAT; end
+		);
+		-- Show only out of combat
+		visibilityOptionsMenu:CreateRadio(
+			"Show only out of combat",
+			function() return candyBar.data.visibility.mode == E.VISIBILITY_OUT_OF_COMBAT; end,
+			function() candyBar.data.visibility.mode = E.VISIBILITY_OUT_OF_COMBAT; end
+		);
+
+		visibilityOptionsMenu:CreateSpacer();
+
+		-- Instance Status
+		visibilityOptionsMenu:CreateTitle("Instance Status");
+		-- Show everywhere
+		visibilityOptionsMenu:CreateRadio(
+			"Show everywhere",
+			function() return candyBar.data.visibility.instanceMode == E.INSTANCEMODE_EVERYWHERE; end,
+			function() candyBar.data.visibility.instanceMode = E.INSTANCEMODE_EVERYWHERE; end
+		);
+		-- Show only while in instances
+		visibilityOptionsMenu:CreateRadio(
+			"Show only while in instances",
+			function() return candyBar.data.visibility.instanceMode == E.INSTANCEMODE_INSIDE; end,
+			function() candyBar.data.visibility.instanceMode = E.INSTANCEMODE_INSIDE; end
+		);
+		-- Do not show while in instances
+		visibilityOptionsMenu:CreateRadio(
+			"Do not show while in instances",
+			function() return candyBar.data.visibility.instanceMode == E.INSTANCEMODE_OUTSIDE; end,
+			function() candyBar.data.visibility.instanceMode = E.INSTANCEMODE_OUTSIDE; end
+		);
+
+		visibilityOptionsMenu:CreateSpacer();
+
+		-- Group Status
+		visibilityOptionsMenu:CreateTitle("Group Status");
+		-- Show always
+		visibilityOptionsMenu:CreateRadio(
+			"Show always",
+			function() return candyBar.data.visibility.groupMode == E.GROUPMODE_ALWAYS; end,
+			function() candyBar.data.visibility.groupMode = E.GROUPMODE_ALWAYS; end
+		);
+		-- Only when solo
+		visibilityOptionsMenu:CreateRadio(
+			"Only when solo",
+			function() return candyBar.data.visibility.groupMode == E.GROUPMODE_SOLO; end,
+			function() candyBar.data.visibility.groupMode = E.GROUPMODE_SOLO; end
+		);
+		-- Only when in party or raid
+		visibilityOptionsMenu:CreateRadio(
+			"Only when in party or raid",
+			function() return candyBar.data.visibility.groupMode == E.GROUPMODE_INPARTY; end,
+			function() candyBar.data.visibility.groupMode = E.GROUPMODE_INPARTY; end
+		);
+
+		visibilityOptionsMenu:CreateSpacer();
+
+		-- Show only when holding
+		visibilityOptionsMenu:CreateTitle("Show only when holding");
+		-- CTRL
+		visibilityOptionsMenu:CreateCheckbox(
+			"CTRL",
+			function() return candyBar.data.visibility.showCtrl; end,
+			function() candyBar.data.visibility.showCtrl = not candyBar.data.visibility.showCtrl; end
+		);
+		-- SHIFT
+		visibilityOptionsMenu:CreateCheckbox(
+			"SHIFT",
+			function() return candyBar.data.visibility.showShift; end,
+			function() candyBar.data.visibility.showShift = not candyBar.data.visibility.showShift; end
+		);
+		-- ALT
+		visibilityOptionsMenu:CreateCheckbox(
+			"ALT",
+			function() return candyBar.data.visibility.showAlt; end,
+			function() candyBar.data.visibility.showAlt = not candyBar.data.visibility.showAlt; end
+		);
+
+		visibilityOptionsMenu:CreateSpacer();
+
+		-- Miscellaneous
+		visibilityOptionsMenu:CreateTitle("Miscellaneous");
+		-- Hide when pet battling
+		visibilityOptionsMenu:CreateCheckbox(
+			"Hide when pet battling",
+			function() return candyBar.data.visibility.hideInPetBattle; end,
+			function() candyBar.data.visibility.hideInPetBattle = not candyBar.data.visibility.hideInPetBattle; end
+		);
+		-- Custom Lua condition
+		visibilityOptionsMenu:CreateCheckbox(
+			"Custom Lua condition",
+			function() return candyBar.data.visibility.customLua ~= nil; end,
+			function()
+				StaticPopup_Show("CANDY_LUA_VISIBILITY_EDIT", candyBar.broker, nil, {
+					broker = candyBar.broker,
+					options = candyBar.data,
+				});
+			end
+		);
+
+		rootDescription:CreateSpacer();
+
+		-- Font Size
+		local fontSizeMenu = rootDescription:CreateButton(string.format("|cffffd100Font Size:|r %d", candyBar.data.fontSize));
+		fontSizeMenu:CreateTitle("Font Size");
+		for size = 8, 16 do
+			fontSizeMenu:CreateRadio(
+				tostring(size),
+				function() return candyBar.data.fontSize == size; end,
+				function()
+					candyBar.data.fontSize = size; addon:UpdateCandyText(broker); CloseMenus();
 				end
-				
-				return fontSizeMenu;
-			end)(),
-		},
-		{
-			text = string.format("|cffffd100Font Outline:|r %s", candyBar.data.fontOutline or "None"),
-			notCheckable = true,
-			hasArrow = true,
-			menuList = {
-				{
-					text = "Font Outline", isTitle = true, notCheckable = true,
-				},
-				{
-					text = "None",
-					func = function() candyBar.data.fontOutline = nil; addon:UpdateCandyText(candyBar.broker);CloseMenus(); end,
-					checked = function() return candyBar.data.fontOutline == nil; end,
-				},
-				{
-					text = "Thin Outline",
-					func = function() candyBar.data.fontOutline = "OUTLINE"; addon:UpdateCandyText(candyBar.broker); CloseMenus(); end,
-					checked = function() return candyBar.data.fontOutline == "OUTLINE"; end,
-				},
-				{
-					text = "Thick Outline",
-					func = function() candyBar.data.fontOutline = "THICKOUTLINE"; addon:UpdateCandyText(candyBar.broker); CloseMenus(); end,
-					checked = function() return candyBar.data.fontOutline == "THICKOUTLINE"; end,
-				},
-			},
-		},
-		{
-			text = string.format("|cffffd100Justify Text:|r %s", candyBar.data.justify),
-			notCheckable = true,
-			hasArrow = true,
-			menuList = {
-				{
-					text = "Justify Text", isTitle = true, notCheckable = true,
-				},
-				{
-					text = "Left",
-					func = function() addon:ChangeJustify(candyBar, "LEFT"); CloseMenus(); end,
-					checked = function() return candyBar.data.justify == "LEFT"; end,
-				},
-				{
-					text = "Center",
-					func = function() addon:ChangeJustify(candyBar, "CENTER"); CloseMenus(); end,
-					checked = function() return candyBar.data.justify == "CENTER"; end,
-				},
-				{
-					text = "Right",
-					func = function() addon:ChangeJustify(candyBar, "RIGHT"); CloseMenus(); end,
-					checked = function() return candyBar.data.justify == "RIGHT"; end,
-				},
-			},
-		},
-		{
-			text = string.format("|cffffd100Frame Strata:|r %s", candyBar.data.frameStrata),
-			notCheckable = true,
-			hasArrow = true,
-			menuList = frameStrataMenu,
-		},
-		{
-			text = " ", isTitle = true, notCheckable = true,
-		},
-		{
-			text = "Remove Candy Bar",
-			func = function() addon:RemoveCandy(candyBar.broker); end,
-			notCheckable = true,
-		},
-	};
-	
-	addon.ContextMenu:ClearAllPoints();
-	addon.ContextMenu:SetPoint(point, frame, relative, 0, 0);
-	EasyMenu(contextMenuData, addon.ContextMenu, frame, 0, 0, "MENU");
-	
-	DropDownList1:ClearAllPoints();
-	DropDownList1:SetPoint(point, frame, relative, 0, 0);
-	DropDownList1:SetClampedToScreen(true);
+			);
+		end
+		-- Font Outline
+		local fontOutlineMenu = rootDescription:CreateButton(string.format("|cffffd100Font Outline:|r %s", candyBar.data.fontOutline or "None"));
+		fontOutlineMenu:CreateTitle("Font Outline");
+		-- None
+		fontOutlineMenu:CreateRadio(
+			"None",
+			function() return candyBar.data.fontOutline == nil; end,
+			function()
+				candyBar.data.fontOutline = nil; addon:UpdateCandyText(candyBar.broker); CloseMenus();
+			end
+		);
+		-- Thin Outline
+		fontOutlineMenu:CreateRadio(
+			"Thin Outline",
+			function() return candyBar.data.fontOutline == "OUTLINE"; end,
+			function()
+				candyBar.data.fontOutline = "OUTLINE"; addon:UpdateCandyText(candyBar.broker); CloseMenus();
+			end
+		);
+		-- Thick Outline
+		fontOutlineMenu:CreateRadio(
+			"Thick Outline",
+			function() return candyBar.data.fontOutline == "THICKOUTLINE"; end,
+			function()
+				candyBar.data.fontOutline = "THICKOUTLINE"; addon:UpdateCandyText(candyBar.broker); CloseMenus();
+			end
+		);
+
+		-- Justify Text
+		local justifyTextMenu = rootDescription:CreateButton(string.format("|cffffd100Justify Text:|r %s", candyBar.data.justify));
+		justifyTextMenu:CreateTitle("Justify Text");
+		-- Left
+		justifyTextMenu:CreateRadio(
+			"Left",
+			function() return candyBar.data.justify == "LEFT"; end,
+			function()
+				addon:ChangeJustify(candyBar, "LEFT"); CloseMenus();
+			end
+		);
+		-- Center
+		justifyTextMenu:CreateRadio(
+			"Center",
+			function() return candyBar.data.justify == "CENTER"; end,
+			function()
+				addon:ChangeJustify(candyBar, "CENTER"); CloseMenus();
+			end
+		);
+		-- Right
+		justifyTextMenu:CreateRadio(
+			"Right",
+			function() return candyBar.data.justify == "RIGHT"; end,
+			function()
+				addon:ChangeJustify(candyBar, "RIGHT"); CloseMenus();
+			end
+		);
+
+		-- Frame Strata
+		local frameStrataMenu = rootDescription:CreateButton(string.format("|cffffd100Frame Strata:|r %s", candyBar.data.frameStrata));
+		frameStrataMenu:CreateTitle("Frame Strata");
+		for _, frameStrata in ipairs(addon.frameStrata) do
+			frameStrataMenu:CreateRadio(
+				frameStrata,
+				function() return candyBar.data.frameStrata == frameStrata; end,
+				function()
+					candyBar.data.frameStrata = frameStrata; candyBar:SetFrameStrata(frameStrata); CloseMenus();
+				end
+			);
+		end
+
+		rootDescription:CreateSpacer();
+
+		-- Remove Candy Bar
+		rootDescription:CreateButton(
+			"Remove Candy Bar",
+			function() addon:RemoveCandy(candyBar.broker); end
+		);
+	end);
 end
